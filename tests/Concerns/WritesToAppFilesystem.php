@@ -12,7 +12,7 @@ trait WritesToAppFilesystem
 
   protected function filesystem(): Filesystem
   {
-    if (null === $this->filesystem) {
+    if ($this->filesystem === null) {
       $this->filesystem = new Filesystem();
     }
 
@@ -44,7 +44,7 @@ trait WritesToAppFilesystem
 
   protected function getBasePath()
   {
-    if (null === $this->base_path) {
+    if ($this->base_path === null) {
       $this->filesystem()->copyDirectory(
         parent::getBasePath(),
         $this->base_path = str_replace('\\', '/', sys_get_temp_dir()).'/'.md5(microtime())

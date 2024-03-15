@@ -13,7 +13,7 @@ trait ConfiguresCommands
     $namespace = parent::getDefaultNamespace($rootNamespace);
     $module = $this->module();
 
-    if ($module && false === strpos($rootNamespace, $module->namespaces->first())) {
+    if ($module && strpos($rootNamespace, $module->namespaces->first()) === false) {
       $find = rtrim($rootNamespace, '\\');
       $replace = rtrim($module->namespaces->first(), '\\');
       $namespace = str_replace($find, $replace, $namespace);

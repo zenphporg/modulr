@@ -9,8 +9,8 @@ test('it overrides the default command', function () {
   $this->requiresLaravelVersion('9.2.0');
 
   $this->artisan('make:cast', ['--help' => true])
-      ->expectsOutputToContain('--module')
-      ->assertExitCode(0);
+    ->expectsOutputToContain('--module')
+    ->assertExitCode(0);
 });
 
 test('it scaffolds a cast in the module when module option is set', function () {

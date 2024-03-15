@@ -10,8 +10,8 @@ test('it overrides the default command', function () {
   $this->requiresLaravelVersion('9.2.0');
 
   $this->artisan('make:controller', ['--help' => true])
-      ->expectsOutputToContain('--module')
-      ->assertExitCode(0);
+    ->expectsOutputToContain('--module')
+    ->assertExitCode(0);
 });
 
 test('it produces an error if the module does not exist', function () {

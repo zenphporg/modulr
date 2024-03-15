@@ -22,8 +22,8 @@ class SeedCommand extends \Illuminate\Database\Console\Seeds\SeedCommand
       }
 
       return $this->laravel->make($class)
-          ->setContainer($this->laravel)
-          ->setCommand($this);
+        ->setContainer($this->laravel)
+        ->setCommand($this);
     }
 
     return parent::getSeeder();

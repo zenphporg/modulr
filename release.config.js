@@ -80,7 +80,7 @@ const releaseNotesGeneratorOptions = {
 export default {
   debug: true,
   branches: ['+([0-9])?(.{+([0-9]),x}).x', 'main'],
-  repositoryUrl: 'https://github.com/jetstreamlabs/modulr',
+  repositoryUrl: 'https://gitlab.com/zenphp/modulr',
 
   plugins: [
     ['@semantic-release/commit-analyzer', commitAnalyzerOptions],
@@ -99,7 +99,7 @@ export default {
       },
     ],
     [
-      '@semantic-release/github',
+      '@semantic-release/gitlab',
       {
         publish: true,
       },

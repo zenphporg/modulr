@@ -20,10 +20,10 @@ class CacheCommand extends Command
     $this->call(ClearCommand::class);
 
     $export = $registry->modules()
-        ->map(function (ConfigStore $module_config) {
-          return $module_config->toArray();
-        })
-        ->toArray();
+      ->map(function (ConfigStore $module_config) {
+        return $module_config->toArray();
+      })
+      ->toArray();
 
     $cache_path = $registry->getCachePath();
     $cache_contents = '<?php return '.var_export($export, true).';'.PHP_EOL;

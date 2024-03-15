@@ -9,8 +9,8 @@ test('it overrides the default command', function () {
   $this->requiresLaravelVersion('9.2.0');
 
   $this->artisan('make:observer', ['--help' => true])
-      ->expectsOutputToContain('--module')
-      ->assertExitCode(0);
+    ->expectsOutputToContain('--module')
+    ->assertExitCode(0);
 });
 
 test('it scaffolds a observer in the module when module option is set', function () {

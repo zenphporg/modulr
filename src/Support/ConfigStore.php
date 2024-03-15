@@ -21,20 +21,20 @@ class ConfigStore implements Arrayable
     $name = basename($base_path);
 
     $namespaces = Collection::make($composer_config['autoload']['psr-4'] ?? [])
-        ->mapWithKeys(function ($src, $namespace) use ($base_path) {
-          $path = $base_path.'/'.$src;
+      ->mapWithKeys(function ($src, $namespace) use ($base_path) {
+        $path = $base_path.'/'.$src;
 
-          return [$path => $namespace];
-        });
+        return [$path => $namespace];
+      });
 
     return new static($name, $base_path, $namespaces);
   }
 
   public function __construct(
-        public string $name,
-        public string $base_path,
-        Collection $namespaces = null
-    ) {
+    public string $name,
+    public string $base_path,
+    ?Collection $namespaces = null
+  ) {
     $this->namespaces = $namespaces ?? new Collection();
   }
 

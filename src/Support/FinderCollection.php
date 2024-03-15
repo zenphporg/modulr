@@ -28,9 +28,9 @@ class FinderCollection
   }
 
   public function __construct(
-      protected ?Finder $finder = null,
-      protected ?LazyCollection $collection = null,
-    ) {
+    protected ?Finder $finder = null,
+    protected ?LazyCollection $collection = null,
+  ) {
     if (! $this->finder && ! $this->collection) {
       $this->collection = new LazyCollection();
     }

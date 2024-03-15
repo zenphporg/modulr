@@ -2,6 +2,7 @@
   "private": true,
   "scripts": {
     "pinte": "./vendor/bin/pinte",
+    "test": "./vendor/bin/pest",
     "fix": "npx lint-staged",
     "cn": "composer update && npm update"
   },
@@ -11,7 +12,7 @@
     "@commitlint/config-conventional": "^18.6.0",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
-    "husky": "^9.0.10",
+    "husky": "8.0.3",
     "lint-staged": "^15.2.0",
     "prettier": "^3.1.0",
     "semantic-release": "^23.0.2"

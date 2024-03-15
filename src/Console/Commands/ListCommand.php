@@ -18,22 +18,22 @@ class ListCommand extends Command
     $namespace_title = 'Namespace';
 
     $table = $registry->modules()
-        ->map(function (ConfigStore $config) use (&$namespace_title) {
-          $namespaces = $config->namespaces->map(function ($namespace) {
-            return rtrim($namespace, '\\');
-          });
+      ->map(function (ConfigStore $config) use (&$namespace_title) {
+        $namespaces = $config->namespaces->map(function ($namespace) {
+          return rtrim($namespace, '\\');
+        });
 
-          if ($config->namespaces->count() > 1) {
-            $namespace_title = 'Namespaces';
-          }
+        if ($config->namespaces->count() > 1) {
+          $namespace_title = 'Namespaces';
+        }
 
-          return [
-            $config->name,
-            Str::after(str_replace('\\', '/', $config->base_path), str_replace('\\', '/', $this->laravel->basePath()).'/'),
-            $namespaces->implode(', '),
-          ];
-        })
-        ->toArray();
+        return [
+          $config->name,
+          Str::after(str_replace('\\', '/', $config->base_path), str_replace('\\', '/', $this->laravel->basePath()).'/'),
+          $namespaces->implode(', '),
+        ];
+      })
+      ->toArray();
 
     $count = $registry->modules()->count();
     $this->line('You have '.$count.' '.Str::plural('module', $count).' installed.');

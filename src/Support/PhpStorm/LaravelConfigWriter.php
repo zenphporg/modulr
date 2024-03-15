@@ -14,7 +14,7 @@ class LaravelConfigWriter extends ConfigWriter
 
     // Clean up template paths to prevent duplicates
     foreach ($template_paths as $template_path_key => $existing) {
-      if (null !== $this->module_registry->module((string) $existing['namespace'])) {
+      if ($this->module_registry->module((string) $existing['namespace']) !== null) {
         unset($template_paths[$template_path_key][0]);
       }
     }
@@ -23,14 +23,14 @@ class LaravelConfigWriter extends ConfigWriter
     $modules_directory = config('modulr.modules_directory', 'modules');
     $list = $plugin_config->xpath('//option[@name="templatePaths"]//list')[0];
     $this->module_registry->modules()
-        ->sortBy('name')
-        ->each(function (ConfigStore $module_config) use ($list, $modules_directory) {
-          $node = $list->addChild('templatePath');
-          $node->addAttribute('namespace', $module_config->name);
-          $node->addAttribute('path', "{$modules_directory}/{$module_config->name}/resources/views");
-        });
+      ->sortBy('name')
+      ->each(function (ConfigStore $module_config) use ($list, $modules_directory) {
+        $node = $list->addChild('templatePath');
+        $node->addAttribute('namespace', $module_config->name);
+        $node->addAttribute('path', "{$modules_directory}/{$module_config->name}/resources/views");
+      });
 
-    return false !== file_put_contents($this->config_path, $this->formatXml($plugin_config));
+    return file_put_contents($this->config_path, $this->formatXml($plugin_config)) !== false;
   }
 
   protected function getNormalizedPluginConfig(): SimpleXMLElement

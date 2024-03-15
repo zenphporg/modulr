@@ -163,8 +163,8 @@ test('it finds event listeners', function () {
   ]);
 
   $resolved = $this->helper->listenerDirectoryFinder()
-      ->map(fn (SplFileInfo $directory) => str_replace('\\', '/', $directory->getPathname()))
-      ->all();
+    ->map(fn (SplFileInfo $directory) => str_replace('\\', '/', $directory->getPathname()))
+    ->all();
 
   expect($resolved)->toContain($this->module1->path('src/Listeners'));
   expect($resolved)->toContain($this->module2->path('src/Listeners'));

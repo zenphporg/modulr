@@ -33,14 +33,11 @@ class InstallCommand extends Command
 
   /**
    * Instantiate the class.
-   *
-   * @param  Filesystem  $filesystem
-   * @param  Registry  $module_registry
    */
   public function __construct(
-      protected Filesystem $filesystem,
-      protected Registry $module_registry
-    ) {
+    protected Filesystem $filesystem,
+    protected Registry $module_registry
+  ) {
     parent::__construct();
   }
 
@@ -80,8 +77,6 @@ class InstallCommand extends Command
 
   /**
    * Fetch the composer package requested.
-   *
-   * @return void
    */
   protected function installComposerPackage(): void
   {
@@ -111,8 +106,6 @@ class InstallCommand extends Command
 
   /**
    * Make a new module for the requested package.
-   *
-   * @return void
    */
   protected function makeNewModule(): void
   {
@@ -153,8 +146,6 @@ class InstallCommand extends Command
 
   /**
    * Update composer to finalize.
-   *
-   * @return void
    */
   protected function updateComposer(): void
   {
@@ -184,8 +175,6 @@ class InstallCommand extends Command
 
   /**
    * Update our module composer file.
-   *
-   * @return void
    */
   protected function updateModuleComposerFile(): void
   {
@@ -218,8 +207,6 @@ class InstallCommand extends Command
 
   /**
    * Create the modules directory if needed.
-   *
-   * @return void
    */
   protected function ensureModulesDirectoryExists(): void
   {
@@ -233,8 +220,6 @@ class InstallCommand extends Command
 
   /**
    * Update the project composer file.
-   *
-   * @return void
    */
   protected function updateCoreComposerConfig(): void
   {
@@ -265,11 +250,11 @@ class InstallCommand extends Command
     $has_changes = false;
 
     $repository_already_exists = collect($definition['repositories'])
-        ->contains(function ($repository) use ($module_config) {
-          return $repository['url'] === $module_config['url'];
-        });
+      ->contains(function ($repository) use ($module_config) {
+        return $repository['url'] === $module_config['url'];
+      });
 
-    if (false === $repository_already_exists) {
+    if ($repository_already_exists === false) {
       $this->line(" - Adding path repository for <info>{$module_config['url']}</info>");
       $has_changes = true;
 
@@ -310,9 +295,6 @@ class InstallCommand extends Command
 
   /**
    * Sort composer packages.
-   *
-   * @param  array  $packages
-   * @return array
    */
   protected function sortComposerPackages(array $packages): array
   {
@@ -347,8 +329,6 @@ class InstallCommand extends Command
 
   /**
    * Set up our terminal colors.
-   *
-   * @return void
    */
   protected function setUpStyles(): void
   {
@@ -361,9 +341,6 @@ class InstallCommand extends Command
 
   /**
    * Set the output title.
-   *
-   * @param  string  $title
-   * @return void
    */
   protected function title(string $title): void
   {
@@ -374,7 +351,6 @@ class InstallCommand extends Command
    * Generate one or more new lines in the terminal.
    *
    * @param  int  $count
-   * @return void
    */
   public function newLine($count = 1): void
   {
@@ -383,9 +359,6 @@ class InstallCommand extends Command
 
   /**
    * Create a process to return to the various methods and for testing.
-   *
-   * @param  array  $command
-   * @return Process
    */
   public function createProcess(array $command): Process
   {

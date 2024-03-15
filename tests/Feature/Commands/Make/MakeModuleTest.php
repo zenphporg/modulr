@@ -78,15 +78,15 @@ test('it prompts on first module if no custom namespace is set', function () {
   $fs = $this->filesystem();
 
   $this->artisan(MakeModule::class, ['name' => 'test-module'])
-      ->expectsQuestion('Would you like to cancel and configure your module namespace first?', false)
-      ->assertExitCode(0);
+    ->expectsQuestion('Would you like to cancel and configure your module namespace first?', false)
+    ->assertExitCode(0);
 
   Modulr::reload();
 
   expect($fs->isDirectory($this->getBasePath().'/modules/test-module'))->toBeTrue();
 
   $this->artisan(MakeModule::class, ['name' => 'test-module-two'])
-      ->assertExitCode(0);
+    ->assertExitCode(0);
 
   expect($fs->isDirectory($this->getBasePath().'/modules/test-module-two'))->toBeTrue();
 });

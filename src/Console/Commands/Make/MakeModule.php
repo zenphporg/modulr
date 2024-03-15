@@ -129,8 +129,8 @@ class MakeModule extends Command
   protected function shouldAbortToPublishConfig(): bool
   {
     if (
-      'Modules' !== $this->module_namespace
-      || true === $this->option('accept-namespace')
+      $this->module_namespace !== 'Modules'
+      || $this->option('accept-namespace') === true
       || $this->module_registry->modules()->isNotEmpty()
     ) {
       return false;
@@ -247,11 +247,11 @@ class MakeModule extends Command
     $has_changes = false;
 
     $repository_already_exists = collect($definition['repositories'])
-        ->contains(function ($repository) use ($module_config) {
-          return $repository['url'] === $module_config['url'];
-        });
+      ->contains(function ($repository) use ($module_config) {
+        return $repository['url'] === $module_config['url'];
+      });
 
-    if (false === $repository_already_exists) {
+    if ($repository_already_exists === false) {
       $this->line(" - Adding path repository for <info>{$module_config['url']}</info>");
       $has_changes = true;
 

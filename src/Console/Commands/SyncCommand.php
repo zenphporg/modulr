@@ -35,7 +35,7 @@ class SyncCommand extends Command
 
     $this->updatePhpUnit();
 
-    if (true !== $this->option('no-phpstorm')) {
+    if ($this->option('no-phpstorm') !== true) {
       $this->updatePhpStormConfig();
     }
   }
@@ -143,25 +143,25 @@ class SyncCommand extends Command
     }
 
     FinderCollection::forFiles()
-        ->in($idea_directory)
-        ->name('*.iml')
-        ->first(function (SplFileInfo $file) {
-          $config_path = $file->getPathname();
-          $writer = new ProjectImlWriter($config_path, $this->registry);
+      ->in($idea_directory)
+      ->name('*.iml')
+      ->first(function (SplFileInfo $file) {
+        $config_path = $file->getPathname();
+        $writer = new ProjectImlWriter($config_path, $this->registry);
 
-          if ($writer->handle()) {
-            $this->info("Updated PhpStorm project source folders in '{$file->getBasename()}'");
+        if ($writer->handle()) {
+          $this->info("Updated PhpStorm project source folders in '{$file->getBasename()}'");
 
-            return true;
-          }
+          return true;
+        }
 
-          $this->info("Could not update PhpStorm project source folders in '{$file->getBasename()}'");
+        $this->info("Could not update PhpStorm project source folders in '{$file->getBasename()}'");
 
-          if ($this->getOutput()->isVerbose()) {
-            $this->warn($writer->last_error);
-          }
+        if ($this->getOutput()->isVerbose()) {
+          $this->warn($writer->last_error);
+        }
 
-          return false;
-        });
+        return false;
+      });
   }
 }

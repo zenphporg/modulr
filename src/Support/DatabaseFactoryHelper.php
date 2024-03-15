@@ -12,8 +12,8 @@ class DatabaseFactoryHelper
   protected ?string $namespace = null;
 
   public function __construct(
-      protected Registry $registry
-    ) {
+    protected Registry $registry
+  ) {
   }
 
   public function resetResolvers(): void
@@ -27,9 +27,9 @@ class DatabaseFactoryHelper
     return function (Factory $factory) {
       if ($module = $this->registry->moduleForClass(get_class($factory))) {
         return (string) Str::of(get_class($factory))
-            ->replaceFirst($module->qualify($this->namespace()), '')
-            ->replaceLast('Factory', '')
-            ->prepend($module->qualify('Models'), '\\');
+          ->replaceFirst($module->qualify($this->namespace()), '')
+          ->replaceLast('Factory', '')
+          ->prepend($module->qualify('Models'), '\\');
       }
 
       // Temporarily disable the modular resolver if we're not in a module

@@ -12,9 +12,9 @@ class Registry
   protected ?Collection $modules = null;
 
   public function __construct(
-        protected string $modules_path,
-        protected string $cache_path
-    ) {
+    protected string $modules_path,
+    protected string $cache_path
+  ) {
   }
 
   public function getModulesPath(): string
@@ -27,7 +27,7 @@ class Registry
     return $this->cache_path;
   }
 
-  public function module(string $name = null): ?ConfigStore
+  public function module(?string $name = null): ?ConfigStore
   {
     // We want to allow for gracefully handling empty/null names
     return $name
@@ -78,11 +78,11 @@ class Registry
   {
     if (file_exists($this->cache_path)) {
       return Collection::make(require $this->cache_path)
-          ->mapWithKeys(function (array $cached) {
-            $config = new ConfigStore($cached['name'], $cached['base_path'], new Collection($cached['namespaces']));
+        ->mapWithKeys(function (array $cached) {
+          $config = new ConfigStore($cached['name'], $cached['base_path'], new Collection($cached['namespaces']));
 
-            return [$config->name => $config];
-          });
+          return [$config->name => $config];
+        });
     }
 
     if (! is_dir($this->modules_path)) {
@@ -90,15 +90,15 @@ class Registry
     }
 
     return FinderCollection::forFiles()
-        ->depth('== 1')
-        ->name('composer.json')
-        ->in($this->modules_path)
-        ->collect()
-        ->mapWithKeys(function (SplFileInfo $path) {
-          $config = ConfigStore::fromComposerFile($path);
+      ->depth('== 1')
+      ->name('composer.json')
+      ->in($this->modules_path)
+      ->collect()
+      ->mapWithKeys(function (SplFileInfo $path) {
+        $config = ConfigStore::fromComposerFile($path);
 
-          return [$config->name => $config];
-        });
+        return [$config->name => $config];
+      });
   }
 
   protected function extractModuleNameFromPath(string $path): string
