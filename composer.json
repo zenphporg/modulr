@@ -23,7 +23,7 @@
     "ext-simplexml": "*",
     "ext-dom": "*",
     "composer/composer": "^2.7.2",
-    "illuminate/support": "^10|11"
+    "illuminate/support": "^10.0|^11.0"
   },
   "require-dev": {
     "orchestra/testbench": "^8.22",
