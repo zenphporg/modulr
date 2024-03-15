@@ -1,0 +1,20 @@
+* text=auto
+
+*.blade.php diff=html
+*.css diff=css
+*.html diff=html
+*.md diff=markdown
+*.php diff=php
+
+/.editorconfig export-ignore
+/.gitattributes export-ignore
+/.github export-ignore
+/.husky export-ignore
+/.gitignore export-ignore
+/.prettierignore export-ignore
+/.prettierrc export-ignore
+/release.config.js export-ignore
+/package.json export-ignore
+/CHANGELOG.md export-ignore
+/README.md export-ignore
+/pinte.json export-ignore

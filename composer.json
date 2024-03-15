@@ -1,0 +1,69 @@
+{
+  "name": "zenphp/modulr",
+  "description": "Turn your Laravel applications modular with Modulr!",
+  "keywords": [
+    "laravel",
+    "modules",
+    "modulr"
+  ],
+  "authors": [
+    {
+      "name": "Jetstream Labs, LLC.",
+      "email": "hello@jetstreamlabs.com"
+    },
+    {
+      "name": "Chris Morrell",
+      "homepage": "http://www.cmorrell.com"
+    }
+  ],
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "ext-simplexml": "*",
+    "ext-dom": "*",
+    "composer/composer": "^2.7.2",
+    "illuminate/support": "^10|11"
+  },
+  "require-dev": {
+    "orchestra/testbench": "^8.22",
+    "mockery/mockery": "^1.6.9",
+    "ext-json": "*",
+    "zenphp/pinte": "^1.2.0",
+    "pestphp/pest": "^2.34",
+    "pestphp/pest-plugin-faker": "^2.0",
+    "pestphp/pest-plugin-laravel": "^2.3",
+    "pestphp/pest-plugin-type-coverage": "^2.8",
+    "pestphp/pest-plugin-watch": "^2.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "Zen\\Modulr\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Zen\\Modulr\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "fix": "vendor/bin/pinte"
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Zen\\Modulr\\Providers\\ModulrServiceProvider"
+      ],
+      "aliases": {
+        "Modulr": "Zen\\Modulr\\Support\\Facades\\Modulr"
+      }
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "config": {
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
+  }
+}
