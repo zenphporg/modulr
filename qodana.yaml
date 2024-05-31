@@ -5,7 +5,7 @@
 version: "1.0"
 #Specify inspection profile for code analysis
 profile:
-  name: qodana.modulr
+  name: qodana.recommended
 #Enable inspections
 #include:
 #  - name: <SomeEnabledInspectionId>
@@ -22,7 +22,7 @@ php:
 #plugins:
 #  - id: <plugin.id> #(plugin id can be found at https://plugins.jetbrains.com)
 #Specify Qodana linter for analysis (Applied in CI/CD pipeline)
-linter: jetbrains/qodana-php:latest
+linter: jetbrains/qodana-php:2024.1
 include:
   - name: PhpUnhandledExceptionInspection
   - name: PhpMissingReturnTypeInspection

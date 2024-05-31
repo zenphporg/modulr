@@ -1,4 +1,15 @@
+stages:
+  - analyze
+  - test
+  - release
+
+variables:
+  APP_ENV: testing
+  CACHE_DRIVER: array
+  SESSION_DRIVER: array
+
 qodana:
+  stage: analyze
   only:
     - main
     - merge_requests
@@ -9,15 +20,6 @@ qodana:
     QODANA_TOKEN: $qodana_token
   script:
     - qodana --save-report --results-dir=$CI_PROJECT_DIR/.qodana
-
-stages:
-  - test
-  - release
-
-variables:
-  APP_ENV: testing
-  CACHE_DRIVER: array
-  SESSION_DRIVER: array
 
 linux_tests:
   stage: test
