@@ -1,5 +1,17 @@
 # Release Notes
 
+## [1.0.3](https://gitlab.com/zenphp/modulr/compare/v1.0.2...v1.0.3) (2024-05-31)
+
+
+### Code Refactoring
+
+* added qodana to ci pipeline ([bb65075](https://gitlab.com/zenphp/modulr/commit/bb650755c8b67406fbd9a8d63958f3f04fba5685))
+
+
+### Work in Progress
+
+* fixed profile name reordered jobs ([06ffb6b](https://gitlab.com/zenphp/modulr/commit/06ffb6b3c3a3cdfac536036e891711572a60071f))
+
 ## [1.0.2](https://gitlab.com/zenphp/modulr/compare/v1.0.1...v1.0.2) (2024-03-15)
 
 
