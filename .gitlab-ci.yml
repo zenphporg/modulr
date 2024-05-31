@@ -14,7 +14,7 @@ qodana:
     - main
     - merge_requests
   image:
-    name: jetbrains/qodana-php
+    name: jetbrains/qodana-php:2024.1
     entrypoint: [""]
   variables:
     QODANA_TOKEN: $qodana_token

@@ -23,7 +23,42 @@ php:
 #  - id: <plugin.id> #(plugin id can be found at https://plugins.jetbrains.com)
 #Specify Qodana linter for analysis (Applied in CI/CD pipeline)
 linter: jetbrains/qodana-php:2024.1
+fixesStrategy: apply
 include:
   - name: PhpUnhandledExceptionInspection
   - name: PhpMissingReturnTypeInspection
   - name: PhpUnusedAliasInspection
+exclude:
+  - name: PhpClosureCanBeConvertedToFirstClassCallableInspection
+  - name: PhpCatchWithInstanceOfCanBeReplacedWithSpecificCatchesInspection
+  - name: PhpIssetCanBeReplacedWithCoalesceInspection
+  - name: PhpIssetCanCheckNestedAccessDirectlyInspection
+  - name: PhpConvertToJsonValidateInspection
+  - name: PhpMixedReturnTypeCanBeReducedInspection
+  - name: PhpPluralMixedCanBeReplacedWithArrayInspection
+  - name: PhpRedundantReadonlyModifierInspection
+  - name: PhpStrFunctionsInspection
+  - name: PhpSwitchCanBeReplacedWithMatchExpressionInspection
+  - name: PhpAutovivificationOnFalseValuesInspection
+  - name: PhpClassCanBeReadonlyInspection
+  - name: PhpIllegalPsrClassPathInspection
+  - name: PhpCommentCanBeReplacedWithNamedArgumentInspection
+  - name: PhpDefineCanBeReplacedWithConstInspection
+  - name: PhpFullyQualifiedNameUsageInspection
+  - name: PhpDocMissingThrowsInspection
+  - name: PhpMultipleClassesDeclarationsInOneFile
+  - name: PhpNamedArgumentsWithChangedOrderInspection
+  - name: PhpNullSafeOperatorCanBeUsedInspection
+  - name: PhpConstructorStyleInspection
+  - name: PhpDocSignatureIsNotCompleteInspection
+  - name: PhpRedundantClosingTagInspection
+  - name: PhpShortOpenTagInspection
+  - name: PhpTraitUsageOutsideUseInspection
+  - name: PhpTraitUseRuleInsideDifferentClassUseListInspection
+  - name: PhpCastIsUnnecessaryInspection
+  - name: PhpCastIsEvaluableInspection
+  - name: PhpArrayTraversableCanBeReplacedWithIterableInspection
+  - name: PhpUnnecessaryCurlyVarSyntaxInspection
+  - name: PhpUnnecessaryFullyQualifiedNameInspection
+  - name: PhpUnnecessaryLeadingBackslashInUseStatementInspection
+  - name: PhpVariableIsUsedOnlyInClosureInspection
