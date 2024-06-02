@@ -11,6 +11,7 @@ $iterator = Finder::create()
   ->name('*.php')
   ->exclude('stubs')
   ->exclude('tests')
+  ->exclude('vendor')
   ->in($dir);
 
 $versions = GitVersionCollection::create($dir)
