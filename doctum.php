@@ -14,15 +14,15 @@ $iterator = Finder::create()
   ->in($dir);
 
 $versions = GitVersionCollection::create($dir)
-  ->addFromTags('v1.0.*')
-  ->add('main', 'main branch');
+  ->addFromTags('v1.0.*', 'Modulr %version%')
+  ->add('main', 'Modulr Main');
 
 return new Doctum($iterator, [
   'versions' => $versions,
   'title' => 'Modulr API',
   'language' => 'en', // Could be 'fr'
-  'build_dir' => __DIR__.'/api/sf2/%version%',
-  'cache_dir' => __DIR__.'/cache/sf2/%version%',
+  'build_dir' => __DIR__.'/api/%version%',
+  'cache_dir' => __DIR__.'/cache/%version%',
   'source_dir' => dirname($dir).'/',
   'remote_repository' => new GitLabRemoteRepository('zenphp/modulr', $dir),
   'default_opened_level' => 1,
