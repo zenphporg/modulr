@@ -47,7 +47,8 @@
     }
   },
   "scripts": {
-    "fix": "vendor/bin/pinte"
+    "fix": "vendor/bin/pinte",
+    "docs": "doctum doctum.php"
   },
   "extra": {
     "laravel": {
