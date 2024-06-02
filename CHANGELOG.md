@@ -1,5 +1,27 @@
 # Release Notes
 
+## [1.0.4](https://gitlab.com/zenphp/modulr/compare/v1.0.3...v1.0.4) (2024-06-02)
+
+
+### Code Refactoring
+
+* remove all recent doctum and other changes ([6c743aa](https://gitlab.com/zenphp/modulr/commit/6c743aae55b10ae97c30298c3096908e34c03c5f))
+
+
+### Maintenance
+
+* style fixes ([58611ad](https://gitlab.com/zenphp/modulr/commit/58611adab96986569a1fb0eb4d55537b1129ab7b))
+
+
+### Work in Progress
+
+* doctum setup ([1a97f4f](https://gitlab.com/zenphp/modulr/commit/1a97f4fc18774ec2000040b9078a11053f0e4d1f))
+* tweaks for qodana ([e94babe](https://gitlab.com/zenphp/modulr/commit/e94babe6397037b725e86a3c0093f040a0a904d4))
+* update config ([f5ec8e3](https://gitlab.com/zenphp/modulr/commit/f5ec8e34a92df1165ea6beb11d646ba1c4d55eb7))
+* update config ([da64dfb](https://gitlab.com/zenphp/modulr/commit/da64dfb8f38d2f0a484d187f44d1134104c707da))
+* update config ([ef49d6e](https://gitlab.com/zenphp/modulr/commit/ef49d6ec2e36d8277efe5e5840f23065629bee8b))
+* update to just document src dir ([443deed](https://gitlab.com/zenphp/modulr/commit/443deed471da6cfdd72c5246f576d433feed7a23))
+
 ## [1.0.3](https://gitlab.com/zenphp/modulr/compare/v1.0.2...v1.0.3) (2024-05-31)
 
 
