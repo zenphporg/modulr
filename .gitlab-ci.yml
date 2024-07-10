@@ -1,5 +1,4 @@
 stages:
-  - analyze
   - test
   - release
 
@@ -7,19 +6,6 @@ variables:
   APP_ENV: testing
   CACHE_DRIVER: array
   SESSION_DRIVER: array
-
-qodana:
-  stage: analyze
-  only:
-    - main
-    - merge_requests
-  image:
-    name: jetbrains/qodana-php:2024.1
-    entrypoint: ['']
-  variables:
-    QODANA_TOKEN: $qodana_token
-  script:
-    - qodana --save-report --results-dir=$CI_PROJECT_DIR/.qodana
 
 linux_tests:
   stage: test
@@ -36,6 +22,7 @@ linux_tests:
 
 release:
   stage: release
+  needs: ['test']
   image: node:21.7.1
   before_script:
     - npm install
