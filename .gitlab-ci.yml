@@ -23,7 +23,7 @@ tests:
 release:
   stage: release
   needs: ['tests']
-  image: node:21.7.1
+  image: node:22.3.0
   before_script:
     - npm install
   script:
