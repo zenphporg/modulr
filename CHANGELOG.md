@@ -1,5 +1,17 @@
 # Release Notes
 
+## [1.0.6](https://gitlab.com/zenphp/modulr/compare/v1.0.5...v1.0.6) (2024-07-10)
+
+
+### Code Refactoring
+
+* adjustments to test ci ([f7bc517](https://gitlab.com/zenphp/modulr/commit/f7bc517c2fc54be9638ef57ac9f5d94243c3e38b))
+
+
+### Work in Progress
+
+* revert semantic-release version ([f29536e](https://gitlab.com/zenphp/modulr/commit/f29536e7c286e8e81049e92d0f3c3a4955855b59))
+
 ## [1.0.5](https://gitlab.com/zenphp/modulr/compare/v1.0.4...v1.0.5) (2024-07-10)
 
 
