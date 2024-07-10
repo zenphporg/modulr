@@ -1,5 +1,17 @@
 # Release Notes
 
+## [1.0.5](https://gitlab.com/zenphp/modulr/compare/v1.0.4...v1.0.5) (2024-07-10)
+
+
+### Code Refactoring
+
+* update ci workflow ([5f1b09e](https://gitlab.com/zenphp/modulr/commit/5f1b09e3e6b5f62ae1349ebcf53e39c7201fee90))
+
+
+### Work in Progress
+
+* fix typo in ci file ([bb0eaae](https://gitlab.com/zenphp/modulr/commit/bb0eaae9e3d0553a00a973bdac85c2b072fcf13b))
+
 ## [1.0.4](https://gitlab.com/zenphp/modulr/compare/v1.0.3...v1.0.4) (2024-06-02)
 
 
