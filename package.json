@@ -4,8 +4,7 @@
     "lint": "./vendor/bin/fixr",
     "test": "./vendor/bin/pest",
     "fix": "bunx lint-staged",
-    "cb": "composer update && bun update",
-    "prepare": "husky"
+    "cb": "composer update && bun update"
   },
   "type": "module",
   "devDependencies": {
