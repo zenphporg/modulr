@@ -7,9 +7,6 @@ use Zen\Modulr\Support\ConfigStore;
 
 class ProjectImlWriter extends ConfigWriter
 {
-  /**
-   * @return bool
-   */
   public function write(): bool
   {
     $modules_directory = config('modulr.modules_directory', 'modules');
@@ -46,9 +43,6 @@ class ProjectImlWriter extends ConfigWriter
     return file_put_contents($this->config_path, $this->formatXml($iml)) !== false;
   }
 
-  /**
-   * @return \SimpleXMLElement
-   */
   protected function getNormalizedPluginConfig(): SimpleXMLElement
   {
     $config = simplexml_load_string(file_get_contents($this->config_path));

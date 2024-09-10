@@ -11,10 +11,6 @@ class MakeCommand extends ConsoleMakeCommand
   use ConfiguresCommands;
 
   /**
-   * @param  $stub
-   * @param  $name
-   * @return array|string
-   *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException
    */
   protected function replaceClass($stub, $name): array|string

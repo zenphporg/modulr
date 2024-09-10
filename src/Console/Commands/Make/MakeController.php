@@ -12,9 +12,6 @@ class MakeController extends ControllerMakeCommand
   use ConfiguresCommands;
 
   /**
-   * @param  $model
-   * @return string
-   *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException
    */
   protected function parseModel($model): string

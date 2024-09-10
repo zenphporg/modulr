@@ -11,9 +11,6 @@ trait ConfiguresCommands
   use GeneratesModules;
 
   /**
-   * @param  $rootNamespace
-   * @return array|string
-   *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException
    */
   protected function getDefaultNamespace($rootNamespace): array|string
@@ -31,9 +28,6 @@ trait ConfiguresCommands
   }
 
   /**
-   * @param  $name
-   * @return string
-   *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException
    */
   protected function qualifyClass($name): string
@@ -48,9 +42,6 @@ trait ConfiguresCommands
   }
 
   /**
-   * @param  string  $model
-   * @return array|string
-   *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException
    */
   protected function qualifyModel(string $model): array|string
@@ -69,9 +60,6 @@ trait ConfiguresCommands
   }
 
   /**
-   * @param  $name
-   * @return array|string
-   *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException
    */
   protected function getPath($name): array|string
@@ -105,11 +93,6 @@ trait ConfiguresCommands
     return $path;
   }
 
-  /**
-   * @param  $command
-   * @param  array  $arguments
-   * @return int
-   */
   public function call($command, array $arguments = []): int
   {
     // Pass the --module flag on to subsequent commands

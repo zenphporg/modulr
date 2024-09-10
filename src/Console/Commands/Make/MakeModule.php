@@ -30,61 +30,39 @@ class MakeModule extends Command
 
   /**
    * This is the base path of the module
-   *
-   * @var string
    */
   protected string $base_path;
 
   /**
    * This is the PHP namespace for all modules
-   *
-   * @var string
    */
   protected string $module_namespace;
 
   /**
    * This is the composer namespace for all modules
-   *
-   * @var string
    */
   protected string $composer_namespace;
 
   /**
    * This is the name of the module
-   *
-   * @var string
    */
   protected string $module_name;
 
   /**
    * This is the module name as a StudlyCased name
-   *
-   * @var string
    */
   protected string $class_name_prefix;
 
   /**
    * This is the name of the module as a composer package
    * i.e. modules/my-module
-   *
-   * @var string
    */
   protected string $composer_name;
 
-  /**
-   * @var \Illuminate\Filesystem\Filesystem
-   */
   protected Filesystem $filesystem;
 
-  /**
-   * @var \Zen\Modulr\Support\Registry
-   */
   protected Registry $module_registry;
 
-  /**
-   * @param  \Illuminate\Filesystem\Filesystem  $filesystem
-   * @param  \Zen\Modulr\Support\Registry  $module_registry
-   */
   public function __construct(Filesystem $filesystem, Registry $module_registry)
   {
     parent::__construct();
@@ -94,8 +72,6 @@ class MakeModule extends Command
   }
 
   /**
-   * @return int
-   *
    * @throws \Seld\JsonLint\ParsingException
    */
   public function handle(): int
@@ -141,9 +117,6 @@ class MakeModule extends Command
     return 0;
   }
 
-  /**
-   * @return bool
-   */
   protected function shouldAbortToPublishConfig(): bool
   {
     if (
@@ -232,9 +205,6 @@ class MakeModule extends Command
     $this->newLine();
   }
 
-  /**
-   * @return string
-   */
   protected function seedersDirectory(): string
   {
     return version_compare($this->getLaravel()->version(), '8.0.0', '>=')
@@ -315,10 +285,6 @@ class MakeModule extends Command
     $this->newLine();
   }
 
-  /**
-   * @param  array  $packages
-   * @return array
-   */
   protected function sortComposerPackages(array $packages): array
   {
     $prefix = function ($requirement): array|string|null {
@@ -362,10 +328,6 @@ class MakeModule extends Command
     }
   }
 
-  /**
-   * @param  string  $title
-   * @return void
-   */
   protected function title(string $title): void
   {
     $this->getOutput()->title($title);
@@ -380,9 +342,6 @@ class MakeModule extends Command
     $this->getOutput()->newLine($count);
   }
 
-  /**
-   * @return array
-   */
   protected function getStubs(): array
   {
     if (is_array($custom_stubs = config('modulr.stubs'))) {
@@ -409,10 +368,6 @@ class MakeModule extends Command
     ];
   }
 
-  /**
-   * @param  $filename
-   * @return string
-   */
   protected function pathToStub($filename): string
   {
     return str_replace('\\', '/', dirname(__DIR__, 4))."/stubs/$filename";

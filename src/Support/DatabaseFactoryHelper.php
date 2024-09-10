@@ -9,21 +9,13 @@ use ReflectionProperty;
 
 class DatabaseFactoryHelper
 {
-  /**
-   * @var string|null
-   */
   protected ?string $namespace = null;
 
-  /**
-   * @param  \Zen\Modulr\Support\Registry  $registry
-   */
   public function __construct(
     protected Registry $registry
   ) {}
 
   /**
-   * @return void
-   *
    * @throws \ReflectionException
    */
   public function resetResolvers(): void
@@ -32,9 +24,6 @@ class DatabaseFactoryHelper
     $this->unsetProperty(Factory::class, 'factoryNameResolver');
   }
 
-  /**
-   * @return \Closure
-   */
   public function modelNameResolver(): Closure
   {
     return function (Factory $factory) {
@@ -56,9 +45,6 @@ class DatabaseFactoryHelper
     };
   }
 
-  /**
-   * @return \Closure
-   */
   public function factoryNameResolver(): Closure
   {
     return function ($model_name) {
@@ -92,8 +78,6 @@ class DatabaseFactoryHelper
   }
 
   /**
-   * @param  $target
-   * @param  $property
    * @return mixed
    *
    * @throws \ReflectionException
@@ -106,10 +90,6 @@ class DatabaseFactoryHelper
   }
 
   /**
-   * @param  $target
-   * @param  $property
-   * @return void
-   *
    * @throws \ReflectionException
    */
   protected function unsetProperty($target, $property): void

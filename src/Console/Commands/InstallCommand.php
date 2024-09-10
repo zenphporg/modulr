@@ -15,34 +15,16 @@ use Zen\Modulr\Support\Registry;
 
 class InstallCommand extends Command
 {
-  /**
-   * @var string
-   */
   protected string $base_path;
 
-  /**
-   * @var string
-   */
   protected string $module_namespace;
 
-  /**
-   * @var string
-   */
   protected string $composer_namespace;
 
-  /**
-   * @var string
-   */
   protected string $module_name;
 
-  /**
-   * @var string
-   */
   protected string $package_name;
 
-  /**
-   * @var string
-   */
   protected string $composer_name;
 
   /**
@@ -55,10 +37,6 @@ class InstallCommand extends Command
    */
   protected $description = 'Install a composer package as a module.';
 
-  /**
-   * @param  \Illuminate\Filesystem\Filesystem  $filesystem
-   * @param  \Zen\Modulr\Support\Registry  $module_registry
-   */
   public function __construct(
     protected Filesystem $filesystem,
     protected Registry $module_registry
@@ -69,7 +47,6 @@ class InstallCommand extends Command
   /**
    * Run our command function.
    *
-   * @return int
    *
    * @throws \Seld\JsonLint\ParsingException
    */
@@ -104,8 +81,6 @@ class InstallCommand extends Command
 
   /**
    * Fetch the composer package requested.
-   *
-   * @return void
    */
   protected function installComposerPackage(): void
   {
@@ -135,8 +110,6 @@ class InstallCommand extends Command
 
   /**
    * Make a new module for the requested package.
-   *
-   * @return void
    */
   protected function makeNewModule(): void
   {
@@ -147,8 +120,6 @@ class InstallCommand extends Command
 
   /**
    * Copy all the package contents to the module.
-   *
-   * @return int|null
    */
   protected function movePackageToModules(): ?int
   {
@@ -181,8 +152,6 @@ class InstallCommand extends Command
 
   /**
    * Update composer to finalize.
-   *
-   * @return void
    */
   protected function updateComposer(): void
   {
@@ -247,8 +216,6 @@ class InstallCommand extends Command
 
   /**
    * Create the modules directory if needed.
-   *
-   * @return void
    */
   protected function ensureModulesDirectoryExists(): void
   {
@@ -340,9 +307,6 @@ class InstallCommand extends Command
 
   /**
    * Sort composer packages.
-   *
-   * @param  array  $packages
-   * @return array
    */
   protected function sortComposerPackages(array $packages): array
   {
@@ -377,8 +341,6 @@ class InstallCommand extends Command
 
   /**
    * Set up our terminal colors.
-   *
-   * @return void
    */
   protected function setUpStyles(): void
   {
@@ -391,9 +353,6 @@ class InstallCommand extends Command
 
   /**
    * Set the output title.
-   *
-   * @param  string  $title
-   * @return void
    */
   protected function title(string $title): void
   {
@@ -404,7 +363,6 @@ class InstallCommand extends Command
    * Generate one or more new lines in the terminal.
    *
    * @param  int  $count
-   * @return void
    */
   public function newLine($count = 1): void
   {
@@ -413,9 +371,6 @@ class InstallCommand extends Command
 
   /**
    * Create a process to return to the various methods and for testing.
-   *
-   * @param  array  $command
-   * @return \Symfony\Component\Process\Process
    */
   public function createProcess(array $command): Process
   {

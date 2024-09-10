@@ -10,7 +10,6 @@ class MakeModel extends ModelMakeCommand
   use ConfiguresCommands;
 
   /**
-   * @param  $rootNamespace
    * @return string
    *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException

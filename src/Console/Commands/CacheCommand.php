@@ -21,11 +21,6 @@ class CacheCommand extends Command
    */
   protected $description = 'Create a cache file for faster module loading';
 
-  /**
-   * @param  \Zen\Modulr\Support\Registry  $registry
-   * @param  \Illuminate\Filesystem\Filesystem  $filesystem
-   * @return void
-   */
   public function handle(Registry $registry, Filesystem $filesystem): void
   {
     $this->call(ClearCommand::class);

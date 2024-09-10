@@ -12,7 +12,6 @@ class MakeListener extends ListenerMakeCommand
   use ConfiguresCommands;
 
   /**
-   * @param  $name
    * @return array|string|string[]
    *
    * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException

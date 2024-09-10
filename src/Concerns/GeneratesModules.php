@@ -10,8 +10,6 @@ use Zen\Modulr\Support\Registry;
 trait GeneratesModules
 {
   /**
-   * @return \Zen\Modulr\Support\ConfigStore|null
-   *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException
    */
   protected function module(): ?ConfigStore
@@ -30,8 +28,6 @@ trait GeneratesModules
   }
 
   /**
-   * @return void
-   *
    * @noinspection PhpMultipleClassDeclarationsInspection
    */
   protected function configure(): void

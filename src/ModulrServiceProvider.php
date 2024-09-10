@@ -31,29 +31,15 @@ use Zen\Modulr\Support\Registry;
 
 class ModulrServiceProvider extends ServiceProvider
 {
-  /**
-   * @var \Zen\Modulr\Support\Registry|null
-   */
   protected ?Registry $registry = null;
 
-  /**
-   * @var \Zen\Modulr\Support\AutoDiscoveryHelper|null
-   */
   protected ?AutoDiscoveryHelper $auto_discovery_helper = null;
 
-  /**
-   * @var string
-   */
   protected string $base_dir;
 
-  /**
-   * @var string|null
-   */
   protected ?string $modules_path = null;
 
   /**
-   * @return void
-   *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException
    */
   public function register(): void
@@ -95,8 +81,6 @@ class ModulrServiceProvider extends ServiceProvider
   }
 
   /**
-   * @return void
-   *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException
    * @throws \Zen\Modulr\Exceptions\CannotFindModuleForPathException
    */
@@ -112,8 +96,6 @@ class ModulrServiceProvider extends ServiceProvider
   }
 
   /**
-   * @return Registry
-   *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException
    */
   protected function registry(): Registry
@@ -122,8 +104,6 @@ class ModulrServiceProvider extends ServiceProvider
   }
 
   /**
-   * @return \Zen\Modulr\Support\AutoDiscoveryHelper
-   *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException
    */
   protected function autoDiscoveryHelper(): AutoDiscoveryHelper
@@ -131,9 +111,6 @@ class ModulrServiceProvider extends ServiceProvider
     return $this->auto_discovery_helper ??= $this->app->make(AutoDiscoveryHelper::class);
   }
 
-  /**
-   * @return void
-   */
   protected function publishVendorFiles(): void
   {
     $this->publishes([
@@ -141,9 +118,6 @@ class ModulrServiceProvider extends ServiceProvider
     ], 'modulr-config');
   }
 
-  /**
-   * @return void
-   */
   protected function bootPackageCommands(): void
   {
     if (! $this->app->runningInConsole()) {
@@ -161,8 +135,6 @@ class ModulrServiceProvider extends ServiceProvider
   }
 
   /**
-   * @return void
-   *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException
    */
   protected function bootRoutes(): void
@@ -179,8 +151,6 @@ class ModulrServiceProvider extends ServiceProvider
   }
 
   /**
-   * @return void
-   *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException
    * @throws \Zen\Modulr\Exceptions\CannotFindModuleForPathException
    */
@@ -197,8 +167,6 @@ class ModulrServiceProvider extends ServiceProvider
   }
 
   /**
-   * @return void
-   *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException
    * @throws \Zen\Modulr\Exceptions\CannotFindModuleForPathException
    */
@@ -225,8 +193,6 @@ class ModulrServiceProvider extends ServiceProvider
   }
 
   /**
-   * @return void
-   *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException
    * @throws \Zen\Modulr\Exceptions\CannotFindModuleForPathException
    */
@@ -247,9 +213,6 @@ class ModulrServiceProvider extends ServiceProvider
   }
 
   /**
-   * @param  \Illuminate\Database\Migrations\Migrator  $migrator
-   * @return void
-   *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException
    */
   protected function registerMigrations(Migrator $migrator): void
@@ -262,8 +225,6 @@ class ModulrServiceProvider extends ServiceProvider
   }
 
   /**
-   * @return void
-   *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException
    */
   protected function registerEloquentFactories(): void
@@ -275,9 +236,6 @@ class ModulrServiceProvider extends ServiceProvider
   }
 
   /**
-   * @param  \Illuminate\Contracts\Auth\Access\Gate  $gate
-   * @return void
-   *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException
    * @throws \Zen\Modulr\Exceptions\CannotFindModuleForPathException
    */
@@ -311,9 +269,6 @@ class ModulrServiceProvider extends ServiceProvider
   }
 
   /**
-   * @param  \Illuminate\Console\Application  $artisan
-   * @return void
-   *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException
    * @throws \Zen\Modulr\Exceptions\CannotFindModuleForPathException
    */
@@ -331,8 +286,6 @@ class ModulrServiceProvider extends ServiceProvider
   }
 
   /**
-   * @param  string  $class_name
-   * @param  callable  $callback
    * @return $this
    */
   protected function registerLazily(string $class_name, callable $callback): self
@@ -343,8 +296,6 @@ class ModulrServiceProvider extends ServiceProvider
   }
 
   /**
-   * @return string
-   *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException
    */
   protected function getModulesBasePath(): string
@@ -357,10 +308,6 @@ class ModulrServiceProvider extends ServiceProvider
     return $this->modules_path;
   }
 
-  /**
-   * @param  $command
-   * @return bool
-   */
   protected function isInstantiableCommand($command): bool
   {
     return is_subclass_of($command, Command::class)

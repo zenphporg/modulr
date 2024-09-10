@@ -18,11 +18,6 @@ class ClearCommand extends Command
    */
   protected $description = 'Remove the module cache file';
 
-  /**
-   * @param  \Illuminate\Filesystem\Filesystem  $filesystem
-   * @param  \Zen\Modulr\Support\Registry  $registry
-   * @return void
-   */
   public function handle(Filesystem $filesystem, Registry $registry): void
   {
     $filesystem->delete($registry->getCachePath());

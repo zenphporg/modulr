@@ -62,9 +62,6 @@ class CommandsServiceProvider extends ServiceProvider
     'command.seed' => SeedCommand::class,
   ];
 
-  /**
-   * @return void
-   */
   public function register(): void
   {
     // Register our overrides via the "booted" event to ensure that we override

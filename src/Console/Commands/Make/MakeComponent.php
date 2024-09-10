@@ -11,7 +11,6 @@ class MakeComponent extends ComponentMakeCommand
 
   /**
    * @param  string  $path
-   * @return string
    *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException
    */

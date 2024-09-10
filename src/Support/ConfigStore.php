@@ -10,15 +10,9 @@ use Symfony\Component\Finder\SplFileInfo;
 
 class ConfigStore implements Arrayable
 {
-  /**
-   * @var \Illuminate\Support\Collection
-   */
   public Collection $namespaces;
 
   /**
-   * @param  \Symfony\Component\Finder\SplFileInfo  $composer_file
-   * @return self
-   *
    * @throws \JsonException
    */
   public static function fromComposerFile(SplFileInfo $composer_file): self
@@ -39,11 +33,6 @@ class ConfigStore implements Arrayable
     return new static($name, $base_path, $namespaces);
   }
 
-  /**
-   * @param  string  $name
-   * @param  string  $base_path
-   * @param  \Illuminate\Support\Collection|null  $namespaces
-   */
   public function __construct(
     public string $name,
     public string $base_path,
@@ -52,36 +41,21 @@ class ConfigStore implements Arrayable
     $this->namespaces = $namespaces ?? new Collection;
   }
 
-  /**
-   * @param  string  $to
-   * @return string
-   */
   public function path(string $to = ''): string
   {
     return rtrim($this->base_path.'/'.$to, '/');
   }
 
-  /**
-   * @return string
-   */
   public function namespace(): string
   {
     return $this->namespaces->first();
   }
 
-  /**
-   * @param  string  $class_name
-   * @return string
-   */
   public function qualify(string $class_name): string
   {
     return $this->namespace().ltrim($class_name, '\\');
   }
 
-  /**
-   * @param  string  $path
-   * @return string
-   */
   public function pathToFullyQualifiedClassName(string $path): string
   {
     // Handle Windows-style paths
@@ -98,9 +72,6 @@ class ConfigStore implements Arrayable
     throw new RuntimeException("Unable to infer qualified class name for '$path'");
   }
 
-  /**
-   * @return array
-   */
   public function toArray(): array
   {
     return [
@@ -110,10 +81,6 @@ class ConfigStore implements Arrayable
     ];
   }
 
-  /**
-   * @param  string  $path
-   * @return string
-   */
   protected function formatPathAsNamespace(string $path): string
   {
     $path = trim($path, '/');

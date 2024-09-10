@@ -13,7 +13,6 @@ class MakeSeeder extends SeederMakeCommand
   }
 
   /**
-   * @param  $name
    * @return array|string
    *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException
@@ -30,8 +29,6 @@ class MakeSeeder extends SeederMakeCommand
   }
 
   /**
-   * @param  $stub
-   * @param  $name
    * @return \Zen\Modulr\Console\Commands\Make\MakeSeeder
    *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException

@@ -11,8 +11,6 @@ class MakeFactory extends FactoryMakeCommand
   use ConfiguresCommands;
 
   /**
-   * @param  $stub
-   * @param  $name
    * @return \Zen\Modulr\Console\Commands\Make\MakeFactory
    *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException
@@ -46,7 +44,6 @@ class MakeFactory extends FactoryMakeCommand
   }
 
   /**
-   * @param  $name
    * @return array|string
    *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException

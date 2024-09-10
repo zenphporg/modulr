@@ -7,9 +7,6 @@ use Zen\Modulr\Support\ConfigStore;
 
 class WorkspaceWriter extends ConfigWriter
 {
-  /**
-   * @return bool
-   */
   public function write(): bool
   {
     $config = simplexml_load_string(file_get_contents($this->config_path));

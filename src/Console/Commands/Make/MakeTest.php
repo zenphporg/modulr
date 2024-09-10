@@ -13,9 +13,6 @@ class MakeTest extends TestMakeCommand
   }
 
   /**
-   * @param  $name
-   * @return array|string
-   *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException
    */
   protected function getPath($name): array|string
@@ -30,8 +27,6 @@ class MakeTest extends TestMakeCommand
   }
 
   /**
-   * @return string
-   *
    * @throws \Illuminate\Contracts\Container\BindingResolutionException
    */
   protected function rootNamespace(): string

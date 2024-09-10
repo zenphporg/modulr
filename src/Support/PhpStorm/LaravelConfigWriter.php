@@ -7,9 +7,6 @@ use Zen\Modulr\Support\ConfigStore;
 
 class LaravelConfigWriter extends ConfigWriter
 {
-  /**
-   * @return bool
-   */
   public function write(): bool
   {
     $plugin_config = $this->getNormalizedPluginConfig();
@@ -36,9 +33,6 @@ class LaravelConfigWriter extends ConfigWriter
     return file_put_contents($this->config_path, $this->formatXml($plugin_config)) !== false;
   }
 
-  /**
-   * @return \SimpleXMLElement
-   */
   protected function getNormalizedPluginConfig(): SimpleXMLElement
   {
     $config = simplexml_load_string(file_get_contents($this->config_path));

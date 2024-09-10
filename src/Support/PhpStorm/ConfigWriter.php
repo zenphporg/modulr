@@ -8,39 +8,20 @@ use Zen\Modulr\Support\Registry;
 
 abstract class ConfigWriter
 {
-  /**
-   * @var string
-   */
   public string $last_error;
 
-  /**
-   * @var string
-   */
   protected string $config_path;
 
-  /**
-   * @var \Zen\Modulr\Support\Registry
-   */
   protected Registry $module_registry;
 
-  /**
-   * @return bool
-   */
   abstract public function write(): bool;
 
-  /**
-   * @param  $config_path
-   * @param  \Zen\Modulr\Support\Registry  $module_registry
-   */
   public function __construct(string $config_path, Registry $module_registry)
   {
     $this->config_path = $config_path;
     $this->module_registry = $module_registry;
   }
 
-  /**
-   * @return bool
-   */
   public function handle(): bool
   {
     if (! $this->checkConfigFilePermissions()) {
@@ -50,9 +31,6 @@ abstract class ConfigWriter
     return $this->write();
   }
 
-  /**
-   * @return bool
-   */
   protected function checkConfigFilePermissions(): bool
   {
     if (! is_readable($this->config_path) || ! is_writable($this->config_path)) {
@@ -66,10 +44,6 @@ abstract class ConfigWriter
     return true;
   }
 
-  /**
-   * @param  string  $message
-   * @return bool
-   */
   protected function error(string $message): bool
   {
     $this->last_error = $message;
@@ -77,10 +51,6 @@ abstract class ConfigWriter
     return false;
   }
 
-  /**
-   * @param  \SimpleXMLElement  $xml
-   * @return string
-   */
   protected function formatXml(SimpleXMLElement $xml): string
   {
     $dom = new DOMDocument('1.0', 'UTF-8');
