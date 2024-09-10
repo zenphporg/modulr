@@ -7,6 +7,11 @@ use Zen\Modulr\Support\Facades\Modulr;
 
 class DiscoverEvents extends \Illuminate\Foundation\Events\DiscoverEvents
 {
+  /**
+   * @param  \SplFileInfo  $file
+   * @param  $basePath
+   * @return string
+   */
   protected static function classFromFile(SplFileInfo $file, $basePath)
   {
     if ($module = Modulr::moduleForPath($file->getRealPath())) {

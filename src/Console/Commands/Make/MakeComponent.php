@@ -9,10 +9,16 @@ class MakeComponent extends ComponentMakeCommand
 {
   use ConfiguresCommands;
 
-  protected function viewPath($path = '')
+  /**
+   * @param  string  $path
+   * @return string
+   *
+   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   */
+  protected function viewPath($path = ''): string
   {
-    if ($module = $this->module()) {
-      return $module->path("resources/views/{$path}");
+    if (($module = $this->module()) instanceof \Zen\Modulr\Support\ConfigStore) {
+      return $module->path("resources/views/$path");
     }
 
     return parent::viewPath($path);

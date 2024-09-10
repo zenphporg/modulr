@@ -1,6 +1,7 @@
 <?php
 
 use Zen\Modulr\Console\Commands\Make\MakeComponent;
+use Zen\Modulr\Console\Commands\Make\MakeModule;
 
 uses(Zen\Modulr\Tests\Concerns\WritesToAppFilesystem::class);
 uses(Zen\Modulr\Tests\Concerns\TestsMakeCommands::class);
@@ -14,6 +15,11 @@ test('it overrides the default command', function () {
 });
 
 test('it scaffolds a component in the module when module option is set', function () {
+  $this->artisan(MakeModule::class, [
+    'name' => 'test-module',
+    '--accept-namespace' => true,
+  ]);
+
   $command = MakeComponent::class;
   $arguments = ['name' => 'TestComponent'];
   $expected_path = 'src/View/Components/TestComponent.php';

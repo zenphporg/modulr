@@ -9,23 +9,36 @@ use ReflectionProperty;
 
 class DatabaseFactoryHelper
 {
+  /**
+   * @var string|null
+   */
   protected ?string $namespace = null;
 
+  /**
+   * @param  \Zen\Modulr\Support\Registry  $registry
+   */
   public function __construct(
     protected Registry $registry
-  ) {
-  }
+  ) {}
 
+  /**
+   * @return void
+   *
+   * @throws \ReflectionException
+   */
   public function resetResolvers(): void
   {
     $this->unsetProperty(Factory::class, 'modelNameResolver');
     $this->unsetProperty(Factory::class, 'factoryNameResolver');
   }
 
+  /**
+   * @return \Closure
+   */
   public function modelNameResolver(): Closure
   {
     return function (Factory $factory) {
-      if ($module = $this->registry->moduleForClass(get_class($factory))) {
+      if (($module = $this->registry->moduleForClass(get_class($factory))) instanceof ConfigStore) {
         return (string) Str::of(get_class($factory))
           ->replaceFirst($module->qualify($this->namespace()), '')
           ->replaceLast('Factory', '')
@@ -43,10 +56,13 @@ class DatabaseFactoryHelper
     };
   }
 
+  /**
+   * @return \Closure
+   */
   public function factoryNameResolver(): Closure
   {
     return function ($model_name) {
-      if ($module = $this->registry->moduleForClass($model_name)) {
+      if (($module = $this->registry->moduleForClass($model_name)) instanceof ConfigStore) {
         $model_name = Str::startsWith($model_name, $module->qualify('Models\\'))
             ? Str::after($model_name, $module->qualify('Models\\'))
             : Str::after($model_name, $module->namespace());
@@ -67,26 +83,38 @@ class DatabaseFactoryHelper
 
   /**
    * Because Factory::$namespace is protected, we need to access it via reflection.
+   *
+   * @throws \ReflectionException
    */
   public function namespace(): string
   {
     return $this->namespace ??= $this->getProperty(Factory::class, 'namespace');
   }
 
+  /**
+   * @param  $target
+   * @param  $property
+   * @return mixed
+   *
+   * @throws \ReflectionException
+   */
   protected function getProperty($target, $property)
   {
     $reflection = new ReflectionProperty($target, $property);
 
-    $reflection->setAccessible(true);
-
     return $reflection->getValue();
   }
 
+  /**
+   * @param  $target
+   * @param  $property
+   * @return void
+   *
+   * @throws \ReflectionException
+   */
   protected function unsetProperty($target, $property): void
   {
     $reflection = new ReflectionProperty($target, $property);
-
-    $reflection->setAccessible(true);
 
     $reflection->setValue(null);
   }

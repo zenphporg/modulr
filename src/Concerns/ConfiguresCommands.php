@@ -1,5 +1,7 @@
 <?php
 
+/** @noinspection PhpMultipleClassDeclarationsInspection */
+
 namespace Zen\Modulr\Concerns;
 
 use Illuminate\Support\Str;
@@ -8,12 +10,18 @@ trait ConfiguresCommands
 {
   use GeneratesModules;
 
-  protected function getDefaultNamespace($rootNamespace)
+  /**
+   * @param  $rootNamespace
+   * @return array|string
+   *
+   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   */
+  protected function getDefaultNamespace($rootNamespace): array|string
   {
     $namespace = parent::getDefaultNamespace($rootNamespace);
     $module = $this->module();
 
-    if ($module && strpos($rootNamespace, $module->namespaces->first()) === false) {
+    if ($module && ! str_contains($rootNamespace, $module->namespaces->first())) {
       $find = rtrim($rootNamespace, '\\');
       $replace = rtrim($module->namespaces->first(), '\\');
       $namespace = str_replace($find, $replace, $namespace);
@@ -22,20 +30,30 @@ trait ConfiguresCommands
     return $namespace;
   }
 
-  protected function qualifyClass($name)
+  /**
+   * @param  $name
+   * @return string
+   *
+   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   */
+  protected function qualifyClass($name): string
   {
     $name = ltrim($name, '\\/');
 
-    if ($module = $this->module()) {
-      if (Str::startsWith($name, $module->namespaces->first())) {
-        return $name;
-      }
+    if (($module = $this->module()) && Str::startsWith($name, $module->namespaces->first())) {
+      return $name;
     }
 
     return parent::qualifyClass($name);
   }
 
-  protected function qualifyModel(string $model)
+  /**
+   * @param  string  $model
+   * @return array|string
+   *
+   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   */
+  protected function qualifyModel(string $model): array|string
   {
     if ($module = $this->module()) {
       $model = str_replace('/', '\\', ltrim($model, '\\/'));
@@ -50,7 +68,13 @@ trait ConfiguresCommands
     return parent::qualifyModel($model);
   }
 
-  protected function getPath($name)
+  /**
+   * @param  $name
+   * @return array|string
+   *
+   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   */
+  protected function getPath($name): array|string
   {
     if ($module = $this->module()) {
       $name = Str::replaceFirst($module->namespaces->first(), '', $name);
@@ -67,7 +91,7 @@ trait ConfiguresCommands
       ];
 
       // Normalize all our paths for compatibility's sake
-      $normalize = function ($path) {
+      $normalize = function ($path): string {
         return rtrim($path, '/').'/';
       };
 
@@ -81,7 +105,12 @@ trait ConfiguresCommands
     return $path;
   }
 
-  public function call($command, array $arguments = [])
+  /**
+   * @param  $command
+   * @param  array  $arguments
+   * @return int
+   */
+  public function call($command, array $arguments = []): int
   {
     // Pass the --module flag on to subsequent commands
     if ($module = $this->option('module')) {

@@ -15,7 +15,7 @@ class FinderCollection
 {
   use ForwardsCalls;
 
-  protected const PREFER_COLLECTION_METHODS = ['filter', 'each', 'map'];
+  protected const array PREFER_COLLECTION_METHODS = ['filter', 'each', 'map'];
 
   public static function forFiles(): self
   {
@@ -32,7 +32,7 @@ class FinderCollection
     protected ?LazyCollection $collection = null,
   ) {
     if (! $this->finder && ! $this->collection) {
-      $this->collection = new LazyCollection();
+      $this->collection = new LazyCollection;
     }
   }
 
@@ -41,7 +41,7 @@ class FinderCollection
     try {
       return $this->in($dirs);
     } catch (DirectoryNotFoundException) {
-      return new static();
+      return new static;
     }
   }
 

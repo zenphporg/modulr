@@ -9,6 +9,11 @@ use Zen\Modulr\Support\Registry;
 
 trait GeneratesModules
 {
+  /**
+   * @return \Zen\Modulr\Support\ConfigStore|null
+   *
+   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   */
   protected function module(): ?ConfigStore
   {
     if ($name = $this->option('module')) {
@@ -24,7 +29,12 @@ trait GeneratesModules
     return null;
   }
 
-  protected function configure()
+  /**
+   * @return void
+   *
+   * @noinspection PhpMultipleClassDeclarationsInspection
+   */
+  protected function configure(): void
   {
     parent::configure();
 

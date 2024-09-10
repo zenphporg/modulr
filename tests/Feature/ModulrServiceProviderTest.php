@@ -64,7 +64,7 @@ test('model classes are resolved correctly for factories with custom namespace',
   $this->artisan('make:model', ['name' => 'Widget', '--factory' => true, '--module' => $module->name]);
   require $module->path('database/factories/WidgetFactory.php');
   $factory_class = $module->qualify('Database\\Factories\\WidgetFactory');
-  $factory = new $factory_class();
+  $factory = new $factory_class;
 
   /** @var Factory $factory */
   expect($factory->modelName())->toEqual($module->qualify('Models\\Widget'));
@@ -72,7 +72,7 @@ test('model classes are resolved correctly for factories with custom namespace',
   // We'll also confirm that non-app factories are unaffected
   $this->artisan('make:model', ['name' => 'Widget', '--factory' => true]);
   require database_path('factories/WidgetFactory.php');
-  $factory = new Database\Factories\WidgetFactory();
+  $factory = new Database\Factories\WidgetFactory;
 
   expect($factory->modelName())->toEqual('App\\Widget');
 });

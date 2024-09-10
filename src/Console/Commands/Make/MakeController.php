@@ -11,9 +11,15 @@ class MakeController extends ControllerMakeCommand
 {
   use ConfiguresCommands;
 
-  protected function parseModel($model)
+  /**
+   * @param  $model
+   * @return string
+   *
+   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   */
+  protected function parseModel($model): string
   {
-    if (! $module = $this->module()) {
+    if (! ($module = $this->module()) instanceof \Zen\Modulr\Support\ConfigStore) {
       return parent::parseModel($model);
     }
 

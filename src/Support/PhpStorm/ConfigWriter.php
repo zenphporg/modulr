@@ -11,26 +11,36 @@ abstract class ConfigWriter
   /**
    * @var string
    */
-  public $last_error;
+  public string $last_error;
 
   /**
    * @var string
    */
-  protected $config_path;
+  protected string $config_path;
 
   /**
-   * @var Registry
+   * @var \Zen\Modulr\Support\Registry
    */
-  protected $module_registry;
+  protected Registry $module_registry;
 
+  /**
+   * @return bool
+   */
   abstract public function write(): bool;
 
-  public function __construct($config_path, Registry $module_registry)
+  /**
+   * @param  $config_path
+   * @param  \Zen\Modulr\Support\Registry  $module_registry
+   */
+  public function __construct(string $config_path, Registry $module_registry)
   {
     $this->config_path = $config_path;
     $this->module_registry = $module_registry;
   }
 
+  /**
+   * @return bool
+   */
   public function handle(): bool
   {
     if (! $this->checkConfigFilePermissions()) {
@@ -40,19 +50,26 @@ abstract class ConfigWriter
     return $this->write();
   }
 
+  /**
+   * @return bool
+   */
   protected function checkConfigFilePermissions(): bool
   {
     if (! is_readable($this->config_path) || ! is_writable($this->config_path)) {
-      return $this->error("Unable to find or read: '{$this->config_path}'");
+      return $this->error("Unable to find or read: '$this->config_path'");
     }
 
     if (! is_writable($this->config_path)) {
-      return $this->error("Config file is not writable: '{$this->config_path}'");
+      return $this->error("Config file is not writable: '$this->config_path'");
     }
 
     return true;
   }
 
+  /**
+   * @param  string  $message
+   * @return bool
+   */
   protected function error(string $message): bool
   {
     $this->last_error = $message;
@@ -60,6 +77,10 @@ abstract class ConfigWriter
     return false;
   }
 
+  /**
+   * @param  \SimpleXMLElement  $xml
+   * @return string
+   */
   protected function formatXml(SimpleXMLElement $xml): string
   {
     $dom = new DOMDocument('1.0', 'UTF-8');
@@ -68,8 +89,7 @@ abstract class ConfigWriter
     $dom->loadXML($xml->asXML());
 
     $xml = $dom->saveXML();
-    $xml = preg_replace('~(\S)/>\s*$~m', '$1 />', $xml);
 
-    return $xml;
+    return preg_replace('~(\S)/>\s*$~m', '$1 />', $xml);
   }
 }

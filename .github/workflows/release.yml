@@ -1,0 +1,76 @@
+name: release
+
+on:
+  push:
+    branches:
+      - 'main'
+
+  workflow_dispatch:
+
+jobs:
+  tests:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest]
+        php: [8.3]
+
+    name: PHP ${{ matrix.php }} - ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, curl, libxml, mbstring, zip, fileinfo
+          ini-values: error_reporting=E_ALL
+          tools: composer:v2
+          coverage: none
+
+      - name: Install dependencies
+        run: |
+          composer install
+
+      - name: Execute unit/feature tests
+        run: ./vendor/bin/pest
+
+  release:
+    name: Release *.x Branch
+    runs-on: ubuntu-latest
+    needs: ['tests']
+    steps:
+      - name: Checkout Main
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # - name: Setup PHP
+      #   uses: shivammathur/setup-php@v2
+      #   with:
+      #     php-version: '8.3'
+      #     extensions: dom, curl, libxml, mbstring, zip, fileinfo
+      #     ini-values: error_reporting=E_ALL
+      #     tools: composer:v2
+      #     coverage: none
+
+      # - name: Install dependencies
+      #   run: composer install
+
+      - name: Setup Node
+        uses: actions/setup-node@v3.6.0
+        with:
+          node-version: '22.8.0'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Semantic Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.SEMVER_RELEASE }}
+        run: npx semantic-release

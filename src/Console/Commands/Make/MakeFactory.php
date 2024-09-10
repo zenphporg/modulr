@@ -10,18 +10,25 @@ class MakeFactory extends FactoryMakeCommand
 {
   use ConfiguresCommands;
 
+  /**
+   * @param  $stub
+   * @param  $name
+   * @return \Zen\Modulr\Console\Commands\Make\MakeFactory
+   *
+   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   */
   protected function replaceNamespace(&$stub, $name)
   {
-    if ($module = $this->module()) {
+    if (($module = $this->module()) instanceof \Zen\Modulr\Support\ConfigStore) {
       $model = $this->option('model')
           ? $this->qualifyModel($this->option('model'))
           : $this->qualifyModel($this->guessModelName($name));
 
       $models_namespace = $module->qualify('Models');
 
-      if (Str::startsWith($model, "{$models_namespace}\\")) {
+      if (Str::startsWith($model, "$models_namespace\\")) {
         $extra_namespace = trim(Str::after(Str::beforeLast($model, '\\'), $models_namespace), '\\');
-        $namespace = rtrim($module->qualify("Database\\Factories\\{$extra_namespace}"), '\\');
+        $namespace = rtrim($module->qualify("Database\\Factories\\$extra_namespace"), '\\');
       } else {
         $namespace = $module->qualify('Database\\Factories');
       }
@@ -29,7 +36,7 @@ class MakeFactory extends FactoryMakeCommand
       $replacements = [
         '{{ factoryNamespace }}' => $namespace,
         '{{factoryNamespace}}' => $namespace,
-        'namespace Database\Factories;' => "namespace {$namespace};", // Early Laravel 8 didn't use a placeholder
+        'namespace Database\Factories;' => "namespace $namespace;", // Early Laravel 8 didn't use a placeholder
       ];
 
       $stub = str_replace(array_keys($replacements), array_values($replacements), $stub);
@@ -38,9 +45,15 @@ class MakeFactory extends FactoryMakeCommand
     return parent::replaceNamespace($stub, $name);
   }
 
+  /**
+   * @param  $name
+   * @return array|string
+   *
+   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   */
   protected function guessModelName($name)
   {
-    if ($module = $this->module()) {
+    if (($module = $this->module()) instanceof \Zen\Modulr\Support\ConfigStore) {
       if (Str::endsWith($name, 'Factory')) {
         $name = substr($name, 0, -7);
       }

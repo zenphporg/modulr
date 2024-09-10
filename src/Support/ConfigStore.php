@@ -10,8 +10,17 @@ use Symfony\Component\Finder\SplFileInfo;
 
 class ConfigStore implements Arrayable
 {
+  /**
+   * @var \Illuminate\Support\Collection
+   */
   public Collection $namespaces;
 
+  /**
+   * @param  \Symfony\Component\Finder\SplFileInfo  $composer_file
+   * @return self
+   *
+   * @throws \JsonException
+   */
   public static function fromComposerFile(SplFileInfo $composer_file): self
   {
     $composer_config = json_decode($composer_file->getContents(), true, 16, JSON_THROW_ON_ERROR);
@@ -21,7 +30,7 @@ class ConfigStore implements Arrayable
     $name = basename($base_path);
 
     $namespaces = Collection::make($composer_config['autoload']['psr-4'] ?? [])
-      ->mapWithKeys(function ($src, $namespace) use ($base_path) {
+      ->mapWithKeys(function (string $src, $namespace) use ($base_path) {
         $path = $base_path.'/'.$src;
 
         return [$path => $namespace];
@@ -30,29 +39,49 @@ class ConfigStore implements Arrayable
     return new static($name, $base_path, $namespaces);
   }
 
+  /**
+   * @param  string  $name
+   * @param  string  $base_path
+   * @param  \Illuminate\Support\Collection|null  $namespaces
+   */
   public function __construct(
     public string $name,
     public string $base_path,
     ?Collection $namespaces = null
   ) {
-    $this->namespaces = $namespaces ?? new Collection();
+    $this->namespaces = $namespaces ?? new Collection;
   }
 
+  /**
+   * @param  string  $to
+   * @return string
+   */
   public function path(string $to = ''): string
   {
     return rtrim($this->base_path.'/'.$to, '/');
   }
 
+  /**
+   * @return string
+   */
   public function namespace(): string
   {
     return $this->namespaces->first();
   }
 
+  /**
+   * @param  string  $class_name
+   * @return string
+   */
   public function qualify(string $class_name): string
   {
     return $this->namespace().ltrim($class_name, '\\');
   }
 
+  /**
+   * @param  string  $path
+   * @return string
+   */
   public function pathToFullyQualifiedClassName(string $path): string
   {
     // Handle Windows-style paths
@@ -66,9 +95,12 @@ class ConfigStore implements Arrayable
       }
     }
 
-    throw new RuntimeException("Unable to infer qualified class name for '{$path}'");
+    throw new RuntimeException("Unable to infer qualified class name for '$path'");
   }
 
+  /**
+   * @return array
+   */
   public function toArray(): array
   {
     return [
@@ -78,6 +110,10 @@ class ConfigStore implements Arrayable
     ];
   }
 
+  /**
+   * @param  string  $path
+   * @return string
+   */
   protected function formatPathAsNamespace(string $path): string
   {
     $path = trim($path, '/');

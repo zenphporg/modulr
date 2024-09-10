@@ -1,8 +1,6 @@
-<img src="/.gitlab/assets/header.png" />
+![Zen Foundation](https://raw.githubusercontent.com/zenphporg/.github/main/img/zenphp.png)
 
-# Modulr
-
-`zenphp/modulr`
+## About Modulr
 
 Modulr is a module system for Laravel applications. It uses [Composer path repositories](https://getcomposer.org/doc/05-repositories.md#path) for autoloading, and [Laravel package discovery](https://laravel.com/docs/7.x/packages#package-discovery) for module initialization, and then provides minimal tooling to fill in any gaps.
 

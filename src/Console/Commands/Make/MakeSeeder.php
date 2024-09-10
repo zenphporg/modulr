@@ -12,9 +12,15 @@ class MakeSeeder extends SeederMakeCommand
     getPath as getModularPath;
   }
 
+  /**
+   * @param  $name
+   * @return array|string
+   *
+   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   */
   protected function getPath($name)
   {
-    if ($module = $this->module()) {
+    if (($module = $this->module()) instanceof \Zen\Modulr\Support\ConfigStore) {
       $name = Str::replaceFirst($module->qualify('Database\\Seeders\\'), '', $name);
 
       return $this->getModularPath($name);
@@ -23,24 +29,32 @@ class MakeSeeder extends SeederMakeCommand
     return parent::getPath($name);
   }
 
+  /**
+   * @param  $stub
+   * @param  $name
+   * @return \Zen\Modulr\Console\Commands\Make\MakeSeeder
+   *
+   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   */
   protected function replaceNamespace(&$stub, $name)
   {
-    if ($module = $this->module()) {
-      if (version_compare($this->getLaravel()->version(), '9.6.0', '<')) {
-        $namespace = $module->qualify('Database\Seeders');
-        $stub = str_replace('namespace Database\Seeders;', "namespace {$namespace};", $stub);
-      }
+    if (($module = $this->module()) instanceof \Zen\Modulr\Support\ConfigStore && version_compare($this->getLaravel()->version(), '9.6.0', '<')) {
+      $namespace = $module->qualify('Database\Seeders');
+      $stub = str_replace('namespace Database\Seeders;', "namespace $namespace;", $stub);
     }
 
     return parent::replaceNamespace($stub, $name);
   }
 
+  /**
+   * @return string
+   *
+   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   */
   protected function rootNamespace()
   {
-    if ($module = $this->module()) {
-      if (version_compare($this->getLaravel()->version(), '9.6.0', '>=')) {
-        return $module->qualify('Database\Seeders');
-      }
+    if (($module = $this->module()) instanceof \Zen\Modulr\Support\ConfigStore && version_compare($this->getLaravel()->version(), '9.6.0', '>=')) {
+      return $module->qualify('Database\Seeders');
     }
 
     return parent::rootNamespace();

@@ -10,7 +10,14 @@ class MakeCommand extends ConsoleMakeCommand
 {
   use ConfiguresCommands;
 
-  protected function replaceClass($stub, $name)
+  /**
+   * @param  $stub
+   * @param  $name
+   * @return array|string
+   *
+   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   */
+  protected function replaceClass($stub, $name): array|string
   {
     $stub = parent::replaceClass($stub, $name);
     $module = $this->module();
@@ -20,10 +27,10 @@ class MakeCommand extends ConsoleMakeCommand
 
       $find = [
         "signature = 'command:name'",
-        "signature = 'app:{$cli_name}'",
+        "signature = 'app:$cli_name'",
       ];
 
-      $stub = str_replace($find, "{$module->name}:{$cli_name}", $stub);
+      $stub = str_replace($find, "$module->name:$cli_name", $stub);
     }
 
     return $stub;

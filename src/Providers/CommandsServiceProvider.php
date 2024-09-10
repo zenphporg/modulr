@@ -3,6 +3,7 @@
 namespace Zen\Modulr\Providers;
 
 use Illuminate\Console\Application as Artisan;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Console\Migrations\MigrateMakeCommand as OriginalMakeMigrationCommand;
 use Illuminate\Support\ServiceProvider;
 use Zen\Modulr\Console\Commands\Database\SeedCommand;
@@ -32,6 +33,9 @@ use Zen\Modulr\Console\Commands\Make\MakeTest;
 
 class CommandsServiceProvider extends ServiceProvider
 {
+  /**
+   * @var array|string[]
+   */
   protected array $overrides = [
     'command.cast.make' => MakeCast::class,
     'command.controller.make' => MakeController::class,
@@ -58,19 +62,25 @@ class CommandsServiceProvider extends ServiceProvider
     'command.seed' => SeedCommand::class,
   ];
 
+  /**
+   * @return void
+   */
   public function register(): void
   {
     // Register our overrides via the "booted" event to ensure that we override
     // the default behavior regardless of which service provider happens to be
     // bootstrapped first.
-    $this->app->booted(function () {
-      Artisan::starting(function () {
+    $this->app->booted(function (): void {
+      Artisan::starting(function (): void {
         $this->registerMakeCommandOverrides();
         $this->registerMigrationCommandOverrides();
       });
     });
   }
 
+  /**
+   * @return void
+   */
   protected function registerMakeCommandOverrides()
   {
     foreach ($this->overrides as $alias => $class_name) {
@@ -79,15 +89,18 @@ class CommandsServiceProvider extends ServiceProvider
     }
   }
 
+  /**
+   * @return void
+   */
   protected function registerMigrationCommandOverrides()
   {
     // Laravel 8
-    $this->app->singleton('command.migrate.make', function ($app) {
+    $this->app->singleton('command.migrate.make', function (Application $app): MakeMigration {
       return new MakeMigration($app['migration.creator'], $app['composer']);
     });
 
     // Laravel 9
-    $this->app->singleton(OriginalMakeMigrationCommand::class, function ($app) {
+    $this->app->singleton(OriginalMakeMigrationCommand::class, function (Application $app): MakeMigration {
       return new MakeMigration($app['migration.creator'], $app['composer']);
     });
   }

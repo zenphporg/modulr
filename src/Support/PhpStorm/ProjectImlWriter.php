@@ -7,13 +7,16 @@ use Zen\Modulr\Support\ConfigStore;
 
 class ProjectImlWriter extends ConfigWriter
 {
+  /**
+   * @return bool
+   */
   public function write(): bool
   {
     $modules_directory = config('modulr.modules_directory', 'modules');
 
     $iml = $this->getNormalizedPluginConfig();
     $source_folders = $iml->xpath('//component[@name="NewModuleRootManager"]//content[@url="file://$MODULE_DIR$"]//sourceFolder');
-    $existing_urls = collect($source_folders)->map(function ($node) {
+    $existing_urls = collect($source_folders)->map(function (SimpleXMLElement $node): string {
       return (string) $node['url'];
     });
 
@@ -21,8 +24,8 @@ class ProjectImlWriter extends ConfigWriter
     $content = $iml->xpath('//component[@name="NewModuleRootManager"]//content[@url="file://$MODULE_DIR$"]')[0];
     $this->module_registry->modules()
       ->sortBy('name')
-      ->each(function (ConfigStore $module_config) use (&$content, $modules_directory, $existing_urls) {
-        $src_url = "file://\$MODULE_DIR\$/{$modules_directory}/{$module_config->name}/src";
+      ->each(function (ConfigStore $module_config) use (&$content, $modules_directory, $existing_urls): void {
+        $src_url = "file://\$MODULE_DIR\$/$modules_directory/$module_config->name/src";
 
         if (! $existing_urls->contains($src_url)) {
           $src_node = $content->addChild('sourceFolder');
@@ -31,7 +34,7 @@ class ProjectImlWriter extends ConfigWriter
           $src_node->addAttribute('packagePrefix', rtrim($module_config->namespaces->first(), '\\'));
         }
 
-        $tests_url = "file://\$MODULE_DIR\$/{$modules_directory}/{$module_config->name}/tests";
+        $tests_url = "file://\$MODULE_DIR\$/$modules_directory/$module_config->name/tests";
         if (! $existing_urls->contains($tests_url)) {
           $tests_node = $content->addChild('sourceFolder');
           $tests_node->addAttribute('url', $tests_url);
@@ -43,6 +46,9 @@ class ProjectImlWriter extends ConfigWriter
     return file_put_contents($this->config_path, $this->formatXml($iml)) !== false;
   }
 
+  /**
+   * @return \SimpleXMLElement
+   */
   protected function getNormalizedPluginConfig(): SimpleXMLElement
   {
     $config = simplexml_load_string(file_get_contents($this->config_path));

@@ -59,7 +59,7 @@ test('it looks for named seeders in app namespace when module option is missing'
 
 function createMockSeeder()
 {
-  return new class()
+  return new class
   {
     public $invoked = 0;
 

@@ -13,7 +13,7 @@ trait WritesToAppFilesystem
   protected function filesystem(): Filesystem
   {
     if ($this->filesystem === null) {
-      $this->filesystem = new Filesystem();
+      $this->filesystem = new Filesystem;
     }
 
     return $this->filesystem;

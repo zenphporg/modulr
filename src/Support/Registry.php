@@ -9,24 +9,40 @@ use Zen\Modulr\Exceptions\CannotFindModuleForPathException;
 
 class Registry
 {
+  /**
+   * @var \Illuminate\Support\Collection|null
+   */
   protected ?Collection $modules = null;
 
+  /**
+   * @param  string  $modules_path
+   * @param  string  $cache_path
+   */
   public function __construct(
     protected string $modules_path,
     protected string $cache_path
-  ) {
-  }
+  ) {}
 
+  /**
+   * @return string
+   */
   public function getModulesPath(): string
   {
     return $this->modules_path;
   }
 
+  /**
+   * @return string
+   */
   public function getCachePath(): string
   {
     return $this->cache_path;
   }
 
+  /**
+   * @param  string|null  $name
+   * @return \Zen\Modulr\Support\ConfigStore|null
+   */
   public function module(?string $name = null): ?ConfigStore
   {
     // We want to allow for gracefully handling empty/null names
@@ -35,23 +51,37 @@ class Registry
         : null;
   }
 
+  /**
+   * @param  string  $path
+   * @return \Zen\Modulr\Support\ConfigStore|null
+   */
   public function moduleForPath(string $path): ?ConfigStore
   {
     return $this->module($this->extractModuleNameFromPath($path));
   }
 
+  /**
+   * @param  string  $path
+   * @return \Zen\Modulr\Support\ConfigStore
+   *
+   * @throws \Zen\Modulr\Exceptions\CannotFindModuleForPathException
+   */
   public function moduleForPathOrFail(string $path): ConfigStore
   {
-    if ($module = $this->moduleForPath($path)) {
+    if (($module = $this->moduleForPath($path)) instanceof ConfigStore) {
       return $module;
     }
 
     throw new CannotFindModuleForPathException($path);
   }
 
+  /**
+   * @param  string  $fqcn
+   * @return \Zen\Modulr\Support\ConfigStore|null
+   */
   public function moduleForClass(string $fqcn): ?ConfigStore
   {
-    return $this->modules()->first(function (ConfigStore $module) use ($fqcn) {
+    return $this->modules()->first(function (ConfigStore $module) use ($fqcn): bool {
       foreach ($module->namespaces as $namespace) {
         if (Str::startsWith($fqcn, $namespace)) {
           return true;
@@ -62,11 +92,17 @@ class Registry
     });
   }
 
+  /**
+   * @return \Illuminate\Support\Collection
+   */
   public function modules(): Collection
   {
     return $this->modules ??= $this->loadModules();
   }
 
+  /**
+   * @return \Illuminate\Support\Collection
+   */
   public function reload(): Collection
   {
     $this->modules = null;
@@ -74,6 +110,9 @@ class Registry
     return $this->loadModules();
   }
 
+  /**
+   * @return \Illuminate\Support\Collection
+   */
   protected function loadModules(): Collection
   {
     if (file_exists($this->cache_path)) {
@@ -86,7 +125,7 @@ class Registry
     }
 
     if (! is_dir($this->modules_path)) {
-      return new Collection();
+      return new Collection;
     }
 
     return FinderCollection::forFiles()
@@ -101,6 +140,10 @@ class Registry
       });
   }
 
+  /**
+   * @param  string  $path
+   * @return string
+   */
   protected function extractModuleNameFromPath(string $path): string
   {
     // Handle Windows-style paths

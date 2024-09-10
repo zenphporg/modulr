@@ -28,7 +28,7 @@ class SyncCommand extends Command
    */
   protected $registry;
 
-  public function handle(Registry $registry, Filesystem $filesystem)
+  public function handle(Registry $registry, Filesystem $filesystem): void
   {
     $this->filesystem = $filesystem;
     $this->registry = $registry;
@@ -56,7 +56,7 @@ class SyncCommand extends Command
 
     $existing_nodes = $config->xpath("//phpunit//testsuites//testsuite//directory[text()='./{$modules_directory}/*/tests']");
 
-    if (count($existing_nodes)) {
+    if (count($existing_nodes) > 0) {
       $this->info('Modules test suite already exists in phpunit.xml');
 
       return;
@@ -145,7 +145,7 @@ class SyncCommand extends Command
     FinderCollection::forFiles()
       ->in($idea_directory)
       ->name('*.iml')
-      ->first(function (SplFileInfo $file) {
+      ->first(function (SplFileInfo $file): bool {
         $config_path = $file->getPathname();
         $writer = new ProjectImlWriter($config_path, $this->registry);
 

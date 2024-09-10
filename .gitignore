@@ -23,4 +23,4 @@ yarn-error.log
 npm-debug.log*
 .phpunit.cache
 composer.lock
-package-lock.json
+bun.lockb

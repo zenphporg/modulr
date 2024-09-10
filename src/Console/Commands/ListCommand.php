@@ -13,13 +13,13 @@ class ListCommand extends Command
 
   protected $description = 'List all modules';
 
-  public function handle(Registry $registry)
+  public function handle(Registry $registry): void
   {
     $namespace_title = 'Namespace';
 
     $table = $registry->modules()
-      ->map(function (ConfigStore $config) use (&$namespace_title) {
-        $namespaces = $config->namespaces->map(function ($namespace) {
+      ->map(function (ConfigStore $config) use (&$namespace_title): array {
+        $namespaces = $config->namespaces->map(function ($namespace): string {
           return rtrim($namespace, '\\');
         });
 

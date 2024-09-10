@@ -20,7 +20,7 @@ it('sets up terminal styles correctly', function () {
   $moduleRegistry = Mockery::mock(Registry::class);
   $command = new InstallCommand($filesystem, $moduleRegistry);
 
-  $formatter = new OutputFormatter();
+  $formatter = new OutputFormatter;
   $output = Mockery::mock(OutputStyle::class);
   $output->shouldReceive('getFormatter')->andReturn($formatter);
   $command->setOutput($output);

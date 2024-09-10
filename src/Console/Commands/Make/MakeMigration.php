@@ -10,11 +10,16 @@ class MakeMigration extends MigrateMakeCommand
 {
   use ConfiguresCommands;
 
+  /**
+   * @return array|string|string[]
+   *
+   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   */
   protected function getMigrationPath()
   {
     $path = parent::getMigrationPath();
 
-    if ($module = $this->module()) {
+    if (($module = $this->module()) instanceof \Zen\Modulr\Support\ConfigStore) {
       $app_directory = $this->laravel->databasePath('migrations');
       $module_directory = $module->path('database/migrations');
 

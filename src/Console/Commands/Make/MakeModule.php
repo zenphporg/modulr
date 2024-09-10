@@ -15,11 +15,17 @@ use Zen\Modulr\Support\Registry;
 
 class MakeModule extends Command
 {
+  /**
+   * @var string
+   */
   protected $signature = 'modules:make
 		{name : The name of the module}
 		{--accept-namespace : Skip default namespace confirmation}
     {--empty : Create an empty module directory and namespace}';
 
+  /**
+   * @var string
+   */
   protected $description = 'Create a new Laravel module';
 
   /**
@@ -27,35 +33,35 @@ class MakeModule extends Command
    *
    * @var string
    */
-  protected $base_path;
+  protected string $base_path;
 
   /**
    * This is the PHP namespace for all modules
    *
    * @var string
    */
-  protected $module_namespace;
+  protected string $module_namespace;
 
   /**
    * This is the composer namespace for all modules
    *
    * @var string
    */
-  protected $composer_namespace;
+  protected string $composer_namespace;
 
   /**
    * This is the name of the module
    *
    * @var string
    */
-  protected $module_name;
+  protected string $module_name;
 
   /**
-   * This is the module name as a StudlyCase'd name
+   * This is the module name as a StudlyCased name
    *
    * @var string
    */
-  protected $class_name_prefix;
+  protected string $class_name_prefix;
 
   /**
    * This is the name of the module as a composer package
@@ -63,18 +69,22 @@ class MakeModule extends Command
    *
    * @var string
    */
-  protected $composer_name;
+  protected string $composer_name;
 
   /**
-   * @var Filesystem
+   * @var \Illuminate\Filesystem\Filesystem
    */
-  protected $filesystem;
+  protected Filesystem $filesystem;
 
   /**
-   * @var Registry
+   * @var \Zen\Modulr\Support\Registry
    */
-  protected $module_registry;
+  protected Registry $module_registry;
 
+  /**
+   * @param  \Illuminate\Filesystem\Filesystem  $filesystem
+   * @param  \Zen\Modulr\Support\Registry  $module_registry
+   */
   public function __construct(Filesystem $filesystem, Registry $module_registry)
   {
     parent::__construct();
@@ -83,13 +93,18 @@ class MakeModule extends Command
     $this->module_registry = $module_registry;
   }
 
-  public function handle()
+  /**
+   * @return int
+   *
+   * @throws \Seld\JsonLint\ParsingException
+   */
+  public function handle(): int
   {
     $this->module_name = Str::kebab($this->argument('name'));
     $this->class_name_prefix = Str::studly($this->argument('name'));
     $this->module_namespace = config('modulr.modules_namespace', 'Modules');
     $this->composer_namespace = config('modulr.modules_vendor') ?? Str::kebab($this->module_namespace);
-    $this->composer_name = "{$this->composer_namespace}/{$this->module_name}";
+    $this->composer_name = "$this->composer_namespace/$this->module_name";
     $this->base_path = $this->module_registry->getModulesPath().'/'.$this->module_name;
 
     $this->setUpStyles();
@@ -118,7 +133,7 @@ class MakeModule extends Command
     $this->call(ClearCommand::class);
 
     $this->newLine();
-    $this->line("Please run <kbd>composer update {$this->composer_name}</kbd>");
+    $this->line("Please run <kbd>composer update $this->composer_name</kbd>");
     $this->newLine();
 
     $this->module_registry->reload();
@@ -126,6 +141,9 @@ class MakeModule extends Command
     return 0;
   }
 
+  /**
+   * @return bool
+   */
   protected function shouldAbortToPublishConfig(): bool
   {
     if (
@@ -138,7 +156,7 @@ class MakeModule extends Command
 
     $this->title('Welcome');
 
-    $message = "You're about to create your first module in the <info>{$this->module_namespace}</info> "
+    $message = "You're about to create your first module in the <info>$this->module_namespace</info> "
         .'namespace. This is the default namespace, and will work for many use-cases. However, '
         .'if you ever choose to extract a module into its own package, you will '
         ."likely want to use a custom namespace (like your organization name).\n\n"
@@ -146,23 +164,29 @@ class MakeModule extends Command
         ."and customize it first. You can do this by calling:\n\n"
         .'<kbd>php artisan vendor:publish --tag=modular-config</kbd>';
 
-    $width = min((new Terminal())->getWidth(), 100) - 1;
+    $width = min((new Terminal)->getWidth(), 100) - 1;
     $messages = explode(PHP_EOL, wordwrap($message, $width, PHP_EOL));
     foreach ($messages as $message) {
-      $this->line(" {$message}");
+      $this->line(" $message");
     }
 
     return $this->confirm('Would you like to cancel and configure your module namespace first?', true);
   }
 
+  /**
+   * @return void
+   */
   protected function ensureModulesDirectoryExists()
   {
     if (! $this->filesystem->isDirectory($this->base_path)) {
       $this->filesystem->makeDirectory($this->base_path, 0777, true);
-      $this->line(" - Created <info>{$this->base_path}</info>");
+      $this->line(" - Created <info>$this->base_path</info>");
     }
   }
 
+  /**
+   * @return void
+   */
   protected function writeStubs()
   {
     $this->title('Creating initial module files');
@@ -189,12 +213,12 @@ class MakeModule extends Command
     foreach ($this->getStubs() as $destination => $stub_file) {
       $contents = file_get_contents($stub_file);
       $destination = str_replace($search, $replace, $destination);
-      $filename = "{$this->base_path}/{$destination}";
+      $filename = "$this->base_path/$destination";
 
       $output = str_replace($search, $replace, $contents);
 
       if ($this->filesystem->exists($filename)) {
-        $this->line(" - Skipping <info>{$destination}</info> (already exists)");
+        $this->line(" - Skipping <info>$destination</info> (already exists)");
 
         continue;
       }
@@ -202,12 +226,15 @@ class MakeModule extends Command
       $this->filesystem->ensureDirectoryExists($this->filesystem->dirname($filename));
       $this->filesystem->put($filename, $output);
 
-      $this->line(" - Wrote to <info>{$destination}</info>");
+      $this->line(" - Wrote to <info>$destination</info>");
     }
 
     $this->newLine();
   }
 
+  /**
+   * @return string
+   */
   protected function seedersDirectory(): string
   {
     return version_compare($this->getLaravel()->version(), '8.0.0', '>=')
@@ -215,6 +242,12 @@ class MakeModule extends Command
         : 'seeds';
   }
 
+  /**
+   * @return void
+   *
+   * @throws \Seld\JsonLint\ParsingException
+   * @throws \Exception
+   */
   protected function updateCoreComposerConfig()
   {
     $this->title('Updating application composer.json file');
@@ -247,7 +280,7 @@ class MakeModule extends Command
     $has_changes = false;
 
     $repository_already_exists = collect($definition['repositories'])
-      ->contains(function ($repository) use ($module_config) {
+      ->contains(function (array $repository) use ($module_config): bool {
         return $repository['url'] === $module_config['url'];
       });
 
@@ -263,10 +296,10 @@ class MakeModule extends Command
     }
 
     if (! isset($definition['require'][$this->composer_name])) {
-      $this->line(" - Adding require statement for <info>{$this->composer_name}:*</info>");
+      $this->line(" - Adding require statement for <info>$this->composer_name:*</info>");
       $has_changes = true;
 
-      $definition['require']["{$this->composer_namespace}/{$this->module_name}"] = '*';
+      $definition['require']["$this->composer_namespace/$this->module_name"] = '*';
       $definition['require'] = $this->sortComposerPackages($definition['require']);
     }
 
@@ -282,9 +315,13 @@ class MakeModule extends Command
     $this->newLine();
   }
 
+  /**
+   * @param  array  $packages
+   * @return array
+   */
   protected function sortComposerPackages(array $packages): array
   {
-    $prefix = function ($requirement) {
+    $prefix = function ($requirement): array|string|null {
       return preg_replace(
         [
           '/^php$/',
@@ -306,13 +343,16 @@ class MakeModule extends Command
       );
     };
 
-    uksort($packages, function ($a, $b) use ($prefix) {
+    uksort($packages, function ($a, $b) use ($prefix): int {
       return strnatcmp($prefix($a), $prefix($b));
     });
 
     return $packages;
   }
 
+  /**
+   * @return void
+   */
   protected function setUpStyles()
   {
     $formatter = $this->getOutput()->getFormatter();
@@ -322,16 +362,27 @@ class MakeModule extends Command
     }
   }
 
-  protected function title($title)
+  /**
+   * @param  string  $title
+   * @return void
+   */
+  protected function title(string $title): void
   {
     $this->getOutput()->title($title);
   }
 
+  /**
+   * @param  int  $count
+   * @return void
+   */
   public function newLine($count = 1)
   {
     $this->getOutput()->newLine($count);
   }
 
+  /**
+   * @return array
+   */
   protected function getStubs(): array
   {
     if (is_array($custom_stubs = config('modulr.stubs'))) {
@@ -358,8 +409,12 @@ class MakeModule extends Command
     ];
   }
 
+  /**
+   * @param  $filename
+   * @return string
+   */
   protected function pathToStub($filename): string
   {
-    return str_replace('\\', '/', dirname(__DIR__, 4))."/stubs/{$filename}";
+    return str_replace('\\', '/', dirname(__DIR__, 4))."/stubs/$filename";
   }
 }

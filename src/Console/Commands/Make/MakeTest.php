@@ -12,9 +12,15 @@ class MakeTest extends TestMakeCommand
     getPath as getModularPath;
   }
 
-  protected function getPath($name)
+  /**
+   * @param  $name
+   * @return array|string
+   *
+   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   */
+  protected function getPath($name): array|string
   {
-    if ($module = $this->module()) {
+    if (($module = $this->module()) instanceof \Zen\Modulr\Support\ConfigStore) {
       $name = '\\'.Str::replaceFirst($module->namespaces->first(), '', $name);
 
       return $this->getModularPath($name);
@@ -23,9 +29,14 @@ class MakeTest extends TestMakeCommand
     return parent::getPath($name);
   }
 
-  protected function rootNamespace()
+  /**
+   * @return string
+   *
+   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   */
+  protected function rootNamespace(): string
   {
-    if ($module = $this->module()) {
+    if (($module = $this->module()) instanceof \Zen\Modulr\Support\ConfigStore) {
       return $module->namespaces->first().'Tests';
     }
 

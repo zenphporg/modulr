@@ -11,16 +11,27 @@ use Zen\Modulr\Support\Registry;
 
 class CacheCommand extends Command
 {
+  /**
+   * @var string
+   */
   protected $signature = 'modules:cache';
 
+  /**
+   * @var string
+   */
   protected $description = 'Create a cache file for faster module loading';
 
-  public function handle(Registry $registry, Filesystem $filesystem)
+  /**
+   * @param  \Zen\Modulr\Support\Registry  $registry
+   * @param  \Illuminate\Filesystem\Filesystem  $filesystem
+   * @return void
+   */
+  public function handle(Registry $registry, Filesystem $filesystem): void
   {
     $this->call(ClearCommand::class);
 
     $export = $registry->modules()
-      ->map(function (ConfigStore $module_config) {
+      ->map(function (ConfigStore $module_config): array {
         return $module_config->toArray();
       })
       ->toArray();

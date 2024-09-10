@@ -19,22 +19,22 @@
   "type": "library",
   "license": "MIT",
   "require": {
-    "php": "^8.2",
+    "php": "^8.3",
     "ext-simplexml": "*",
     "ext-dom": "*",
     "composer/composer": "^2.7.2",
-    "illuminate/support": "^10.0|^11.0"
+    "illuminate/support": "^11.0"
   },
   "require-dev": {
     "orchestra/testbench": "^8.22",
     "mockery/mockery": "^1.6.9",
     "ext-json": "*",
-    "zenphp/pinte": "^1.2.0",
     "pestphp/pest": "^2.34",
     "pestphp/pest-plugin-faker": "^2.0",
     "pestphp/pest-plugin-laravel": "^2.3",
     "pestphp/pest-plugin-type-coverage": "^2.8",
-    "pestphp/pest-plugin-watch": "^2.1"
+    "pestphp/pest-plugin-watch": "^2.1",
+    "zenphp/fixr": "^1.0"
   },
   "autoload": {
     "psr-4": {
@@ -47,12 +47,12 @@
     }
   },
   "scripts": {
-    "fix": "vendor/bin/pinte"
+    "fix": "vendor/bin/fixr"
   },
   "extra": {
     "laravel": {
       "providers": [
-        "Zen\\Modulr\\Providers\\ModulrServiceProvider"
+        "Zen\\Modulr\\ModulrServiceProvider"
       ],
       "aliases": {
         "Modulr": "Zen\\Modulr\\Support\\Facades\\Modulr"

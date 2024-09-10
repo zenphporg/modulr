@@ -15,24 +15,49 @@ use Zen\Modulr\Support\Registry;
 
 class InstallCommand extends Command
 {
-  protected $base_path;
+  /**
+   * @var string
+   */
+  protected string $base_path;
 
-  protected $module_namespace;
+  /**
+   * @var string
+   */
+  protected string $module_namespace;
 
-  protected $composer_namespace;
+  /**
+   * @var string
+   */
+  protected string $composer_namespace;
 
-  protected $module_name;
+  /**
+   * @var string
+   */
+  protected string $module_name;
 
-  protected $package_name;
+  /**
+   * @var string
+   */
+  protected string $package_name;
 
-  protected $composer_name;
+  /**
+   * @var string
+   */
+  protected string $composer_name;
 
+  /**
+   * @var string
+   */
   protected $signature = 'modules:install {package : Composer package to modulize} {--name= : Optional module name}';
 
+  /**
+   * @var string
+   */
   protected $description = 'Install a composer package as a module.';
 
   /**
-   * Instantiate the class.
+   * @param  \Illuminate\Filesystem\Filesystem  $filesystem
+   * @param  \Zen\Modulr\Support\Registry  $module_registry
    */
   public function __construct(
     protected Filesystem $filesystem,
@@ -44,9 +69,11 @@ class InstallCommand extends Command
   /**
    * Run our command function.
    *
-   * @return void
+   * @return int
+   *
+   * @throws \Seld\JsonLint\ParsingException
    */
-  public function handle()
+  public function handle(): int
   {
     $this->package_name = $this->argument('package');
 
@@ -56,7 +83,7 @@ class InstallCommand extends Command
 
     $this->module_namespace = config('modulr.modules_namespace', 'Modules');
     $this->composer_namespace = config('modulr.modules_vendor') ?? Str::kebab($this->module_namespace);
-    $this->composer_name = "{$this->composer_namespace}/{$this->module_name}";
+    $this->composer_name = "$this->composer_namespace/$this->module_name";
     $this->base_path = $this->module_registry->getModulesPath().'/'.$this->module_name;
 
     $this->setUpStyles();
@@ -77,10 +104,12 @@ class InstallCommand extends Command
 
   /**
    * Fetch the composer package requested.
+   *
+   * @return void
    */
   protected function installComposerPackage(): void
   {
-    $this->title("Running composer to require package: {$this->package_name}");
+    $this->title("Running composer to require package: $this->package_name");
 
     $process = $this->createProcess(['composer', 'require', $this->package_name]);
     $process->setWorkingDirectory(base_path());
@@ -89,7 +118,7 @@ class InstallCommand extends Command
     $bar = $this->output->createProgressBar(100);
     $bar->start();
 
-    $process->run(function () use ($bar) {
+    $process->run(function () use ($bar): void {
       $bar->advance();
     });
 
@@ -98,7 +127,7 @@ class InstallCommand extends Command
     $this->newLine(2);
 
     $process->isSuccessful()
-      ? $this->line(" - {$this->package_name} was installed successfully.")
+      ? $this->line(" - $this->package_name was installed successfully.")
       : $this->error(' - The composer command failed.');
 
     $this->newLine();
@@ -106,25 +135,29 @@ class InstallCommand extends Command
 
   /**
    * Make a new module for the requested package.
+   *
+   * @return void
    */
   protected function makeNewModule(): void
   {
-    $this->title("Installing new {$this->composer_name} module");
+    $this->title("Installing new $this->composer_name module");
 
     $this->ensureModulesDirectoryExists();
   }
 
   /**
-   * Copy all of the package contents to the module.
+   * Copy all the package contents to the module.
+   *
+   * @return int|null
    */
-  protected function movePackageToModules()
+  protected function movePackageToModules(): ?int
   {
-    $this->title("Migrating {$this->composer_name} to it's new module");
+    $this->title("Migrating $this->composer_name to it's new module");
 
     $source = base_path('vendor/'.$this->package_name);
 
     if (! File::exists($source)) {
-      $this->error(" - Source directory does not exist: {$source}");
+      $this->error(" - Source directory does not exist: $source");
 
       return 1;
     }
@@ -139,13 +172,17 @@ class InstallCommand extends Command
 
     $this->newLine();
 
-    $this->line(" - Migration of {$this->package_name} completed successfully.");
+    $this->line(" - Migration of $this->package_name completed successfully.");
 
     $this->newLine();
+
+    return null;
   }
 
   /**
    * Update composer to finalize.
+   *
+   * @return void
    */
   protected function updateComposer(): void
   {
@@ -158,7 +195,7 @@ class InstallCommand extends Command
     $bar = $this->output->createProgressBar(100);
     $bar->start();
 
-    $process->run(function () use ($bar) {
+    $process->run(function () use ($bar): void {
       $bar->advance();
     });
 
@@ -175,10 +212,13 @@ class InstallCommand extends Command
 
   /**
    * Update our module composer file.
+   *
+   * @throws \Seld\JsonLint\ParsingException
+   * @throws \Exception
    */
   protected function updateModuleComposerFile(): void
   {
-    $this->title("Updating {$this->composer_name} composer.json file");
+    $this->title("Updating $this->composer_name composer.json file");
 
     $file = $this->base_path.'/'.'composer.json';
 
@@ -200,19 +240,21 @@ class InstallCommand extends Command
 
     $json_file->write($definition);
 
-    $this->line(" - Updated {$this->composer_name} composer.json file");
+    $this->line(" - Updated $this->composer_name composer.json file");
 
     $this->newLine();
   }
 
   /**
    * Create the modules directory if needed.
+   *
+   * @return void
    */
   protected function ensureModulesDirectoryExists(): void
   {
     if (! $this->filesystem->isDirectory($this->base_path)) {
       $this->filesystem->makeDirectory($this->base_path, 0777, true);
-      $this->line(" - Created <info>{$this->base_path}</info>");
+      $this->line(" - Created <info>$this->base_path</info>");
     }
 
     $this->newLine();
@@ -220,6 +262,9 @@ class InstallCommand extends Command
 
   /**
    * Update the project composer file.
+   *
+   * @throws \Seld\JsonLint\ParsingException
+   * @throws \Exception
    */
   protected function updateCoreComposerConfig(): void
   {
@@ -250,7 +295,7 @@ class InstallCommand extends Command
     $has_changes = false;
 
     $repository_already_exists = collect($definition['repositories'])
-      ->contains(function ($repository) use ($module_config) {
+      ->contains(function (array $repository) use ($module_config): bool {
         return $repository['url'] === $module_config['url'];
       });
 
@@ -266,15 +311,15 @@ class InstallCommand extends Command
     }
 
     if (! isset($definition['require'][$this->composer_name])) {
-      $this->line(" - Adding require statement for <info>{$this->composer_name}:*</info>");
+      $this->line(" - Adding require statement for <info>$this->composer_name:*</info>");
       $has_changes = true;
 
-      $definition['require']["{$this->composer_namespace}/{$this->module_name}"] = '^1.0';
+      $definition['require']["$this->composer_namespace/$this->module_name"] = '^1.0';
       $definition['require'] = $this->sortComposerPackages($definition['require']);
     }
 
     if (isset($definition['require'][$this->package_name])) {
-      $this->line(" - Removing require statement for <info>{$this->package_name}</info>");
+      $this->line(" - Removing require statement for <info>$this->package_name</info>");
       $has_changes = true;
 
       unset($definition['require'][$this->package_name]);
@@ -295,10 +340,13 @@ class InstallCommand extends Command
 
   /**
    * Sort composer packages.
+   *
+   * @param  array  $packages
+   * @return array
    */
   protected function sortComposerPackages(array $packages): array
   {
-    $prefix = function ($requirement) {
+    $prefix = function ($requirement): array|string|null {
       return preg_replace(
         [
           '/^php$/',
@@ -320,7 +368,7 @@ class InstallCommand extends Command
       );
     };
 
-    uksort($packages, function ($a, $b) use ($prefix) {
+    uksort($packages, function ($a, $b) use ($prefix): int {
       return strnatcmp($prefix($a), $prefix($b));
     });
 
@@ -329,6 +377,8 @@ class InstallCommand extends Command
 
   /**
    * Set up our terminal colors.
+   *
+   * @return void
    */
   protected function setUpStyles(): void
   {
@@ -341,6 +391,9 @@ class InstallCommand extends Command
 
   /**
    * Set the output title.
+   *
+   * @param  string  $title
+   * @return void
    */
   protected function title(string $title): void
   {
@@ -351,6 +404,7 @@ class InstallCommand extends Command
    * Generate one or more new lines in the terminal.
    *
    * @param  int  $count
+   * @return void
    */
   public function newLine($count = 1): void
   {
@@ -359,6 +413,9 @@ class InstallCommand extends Command
 
   /**
    * Create a process to return to the various methods and for testing.
+   *
+   * @param  array  $command
+   * @return \Symfony\Component\Process\Process
    */
   public function createProcess(array $command): Process
   {

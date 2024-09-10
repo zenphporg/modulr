@@ -16,7 +16,7 @@ beforeEach(function () {
   $this->module2 = $this->makeModule('test-module-two');
   $this->helper = new AutoDiscoveryHelper(
     new Registry($this->getBasePath().'/modules', ''),
-    new Filesystem()
+    new Filesystem
   );
 });
 
@@ -137,7 +137,7 @@ test('it finds view directories', function () {
 
 test('it finds lang directories', function () {
   // These paths don't exist by default
-  $fs = new Filesystem();
+  $fs = new Filesystem;
   $fs->makeDirectory($this->module1->path('resources/lang'));
   $fs->makeDirectory($this->module2->path('resources/lang'));
 

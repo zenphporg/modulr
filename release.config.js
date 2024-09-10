@@ -6,6 +6,7 @@ const commitAnalyzerOptions = {
     { type: 'fix', release: 'patch' },
     { type: 'refactor', release: 'patch' },
     { type: 'docs', release: 'patch' },
+    { type: 'task', release: 'patch' },
     { type: 'issue', release: 'patch' },
     { type: 'wip', release: false },
     { type: 'chore', release: false },
@@ -28,6 +29,7 @@ const releaseNotesGeneratorOptions = {
         fix: 'Bug Fixes',
         refactor: 'Code Refactoring',
         docs: 'Documentation',
+        task: 'Code or other task',
         issue: 'Non-bug Issue Resolved',
         wip: 'Work in Progress',
         chore: 'Maintenance',
@@ -80,7 +82,7 @@ const releaseNotesGeneratorOptions = {
 export default {
   debug: true,
   branches: ['+([0-9])?(.{+([0-9]),x}).x', 'main'],
-  repositoryUrl: 'https://gitlab.com/zenphp/modulr',
+  repositoryUrl: 'https://github.com/zenphporg/modulr',
 
   plugins: [
     ['@semantic-release/commit-analyzer', commitAnalyzerOptions],
@@ -98,11 +100,6 @@ export default {
         assets: ['CHANGELOG.md'],
       },
     ],
-    [
-      '@semantic-release/gitlab',
-      {
-        publish: true,
-      },
-    ],
+    ['@semantic-release/github'],
   ],
 };

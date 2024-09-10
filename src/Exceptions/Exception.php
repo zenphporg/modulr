@@ -2,6 +2,4 @@
 
 namespace Zen\Modulr\Exceptions;
 
-class Exception extends \Exception
-{
-}
+class Exception extends \Exception {}
