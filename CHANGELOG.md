@@ -1,5 +1,22 @@
 # Release Notes
 
+## [1.0.7](https://github.com/zenphporg/modulr/compare/v1.0.6...v1.0.7) (2024-09-10)
+
+
+### Bug Fixes
+
+* **tests:** reverted to older dependencies ([df0b687](https://github.com/zenphporg/modulr/commit/df0b6877c16fe23724ae65b729dba86d18fc9bd6))
+
+
+### Code Refactoring
+
+* many quality updates, move to github ([385dfbc](https://github.com/zenphporg/modulr/commit/385dfbc05992544b1f6358562544b291443515e9))
+
+
+### Maintenance
+
+* remove husky prepare ([e10f07e](https://github.com/zenphporg/modulr/commit/e10f07e0d2519be8974ffe4c5df50558e59fb496))
+
 ## [1.0.6](https://gitlab.com/zenphp/modulr/compare/v1.0.5...v1.0.6) (2024-07-10)
 
 
