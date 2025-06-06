@@ -1,5 +1,12 @@
 # Release Notes
 
+## [1.0.9](https://github.com/zenphporg/modulr/compare/v1.0.8...v1.0.9) (2025-06-06)
+
+
+### Bug Fixes
+
+* update illuminate version ([d17c443](https://github.com/zenphporg/modulr/commit/d17c44374f3810938f964b2788e820e4f33c2f6a))
+
 ## [1.0.8](https://github.com/zenphporg/modulr/compare/v1.0.7...v1.0.8) (2025-06-06)
 
 
