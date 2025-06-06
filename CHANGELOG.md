@@ -1,5 +1,17 @@
 # Release Notes
 
+## [1.0.8](https://github.com/zenphporg/modulr/compare/v1.0.7...v1.0.8) (2025-06-06)
+
+
+### Code Refactoring
+
+* added phpunit test suite setup ([59a4c53](https://github.com/zenphporg/modulr/commit/59a4c532d0e00d099a2d8baf668051d60d8fb85d))
+
+
+### Work in Progress
+
+* pre-release for L12 and new tests ([8427056](https://github.com/zenphporg/modulr/commit/8427056ccf725c3cbaef0c0298ab528db2e33656))
+
 ## [1.0.7](https://github.com/zenphporg/modulr/compare/v1.0.6...v1.0.7) (2024-09-10)
 
 
