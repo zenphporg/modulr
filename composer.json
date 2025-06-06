@@ -19,22 +19,17 @@
   "type": "library",
   "license": "MIT",
   "require": {
-    "php": "^8.2",
+    "php": "^8.3",
     "ext-dom": "*",
     "ext-json": "*",
     "ext-simplexml": "*",
-    "composer/composer": "^2.7.2",
-    "illuminate/support": "^10.0|^11.0"
+    "composer/composer": "^2.8.9",
+    "illuminate/support": "^10.0|^11.0|^12.17.0"
   },
   "require-dev": {
-    "orchestra/testbench": "^8.22",
-    "mockery/mockery": "^1.6.9",
-    "pestphp/pest": "^2.34",
-    "pestphp/pest-plugin-faker": "^2.0",
-    "pestphp/pest-plugin-laravel": "^2.3",
-    "pestphp/pest-plugin-type-coverage": "^2.8",
-    "pestphp/pest-plugin-watch": "^2.1",
-    "zenphp/fixr": "^1.0"
+    "orchestra/testbench": "^10.3.0",
+    "mockery/mockery": "^1.6.12",
+    "zenphp/fixr": "^1.0.3"
   },
   "autoload": {
     "psr-4": {
