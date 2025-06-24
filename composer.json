@@ -27,10 +27,12 @@
     "illuminate/support": "^10.0|^11.0|^12.0"
   },
   "require-dev": {
-    "orchestra/testbench": "^10.3.0",
-    "phpunit/phpunit": "^12.0",
     "mockery/mockery": "^1.6.12",
-    "zenphp/fixr": "^1.0.3"
+    "zenphp/fixr": "^1.0.3",
+    "rector/rector": "^2.0",
+    "pestphp/pest": "^3.8",
+    "pestphp/pest-plugin-drift": "^3.0",
+    "orchestra/testbench": "^10.4"
   },
   "autoload": {
     "psr-4": {
@@ -59,7 +61,8 @@
   "prefer-stable": true,
   "config": {
     "allow-plugins": {
-      "pestphp/pest-plugin": true
+      "pestphp/pest-plugin": true,
+      "pestphp/pest-plugin-drift": true
     }
   }
 }

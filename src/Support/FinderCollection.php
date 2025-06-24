@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Zen\Modulr\Support;
 
 use Illuminate\Support\LazyCollection;
@@ -8,8 +10,8 @@ use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 use Symfony\Component\Finder\Finder;
 
 /**
- * @mixin \Illuminate\Support\LazyCollection
- * @mixin \Symfony\Component\Finder\Finder
+ * @mixin LazyCollection
+ * @mixin Finder
  */
 class FinderCollection
 {

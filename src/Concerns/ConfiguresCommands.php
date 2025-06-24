@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 /** @noinspection PhpMultipleClassDeclarationsInspection */
 
 namespace Zen\Modulr\Concerns;
 
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Str;
 
 trait ConfiguresCommands
@@ -11,15 +14,15 @@ trait ConfiguresCommands
   use GeneratesModules;
 
   /**
-   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   * @throws BindingResolutionException
    */
   protected function getDefaultNamespace($rootNamespace): array|string
   {
     $namespace = parent::getDefaultNamespace($rootNamespace);
     $module = $this->module();
 
-    if ($module && ! str_contains($rootNamespace, $module->namespaces->first())) {
-      $find = rtrim($rootNamespace, '\\');
+    if ($module && ! str_contains((string) $rootNamespace, $module->namespaces->first())) {
+      $find = rtrim((string) $rootNamespace, '\\');
       $replace = rtrim($module->namespaces->first(), '\\');
       $namespace = str_replace($find, $replace, $namespace);
     }
@@ -28,11 +31,11 @@ trait ConfiguresCommands
   }
 
   /**
-   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   * @throws BindingResolutionException
    */
   protected function qualifyClass($name): string
   {
-    $name = ltrim($name, '\\/');
+    $name = ltrim((string) $name, '\\/');
 
     if (($module = $this->module()) && Str::startsWith($name, $module->namespaces->first())) {
       return $name;
@@ -42,7 +45,7 @@ trait ConfiguresCommands
   }
 
   /**
-   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   * @throws BindingResolutionException
    */
   protected function qualifyModel(string $model): array|string
   {
@@ -60,7 +63,7 @@ trait ConfiguresCommands
   }
 
   /**
-   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   * @throws BindingResolutionException
    */
   protected function getPath($name): array|string
   {
@@ -79,9 +82,7 @@ trait ConfiguresCommands
       ];
 
       // Normalize all our paths for compatibility's sake
-      $normalize = function ($path): string {
-        return rtrim($path, '/').'/';
-      };
+      $normalize = (fn ($path): string => rtrim((string) $path, '/').'/');
 
       $find = array_map($normalize, array_keys($replacements));
       $replace = array_map($normalize, array_values($replacements));

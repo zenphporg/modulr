@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Zen\Modulr\Support\PhpStorm;
 
 use Illuminate\Support\Str;
@@ -17,9 +19,7 @@ class WorkspaceWriter extends ConfigWriter
     $namespace = config('modulr.modules_namespace', 'Modules');
     $vendor = config('modulr.modules_vendor') ?? Str::kebab($namespace);
     $module_paths = $this->module_registry->modules()
-      ->map(function (ConfigStore $module) use (&$config, $vendor): string {
-        return '$PROJECT_DIR$/vendor/'.$vendor.'/'.$module->name;
-      });
+      ->map(fn (ConfigStore $configStore): string => '$PROJECT_DIR$/vendor/'.$vendor.'/'.$configStore->name);
 
     $include_paths = $config->xpath('//component[@name="PhpWorkspaceProjectConfiguration"]//include_path//path');
 

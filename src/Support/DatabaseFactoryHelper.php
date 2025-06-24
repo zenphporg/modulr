@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Zen\Modulr\Support;
 
 use Closure;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
+use ReflectionException;
 use ReflectionProperty;
 
 class DatabaseFactoryHelper
@@ -16,7 +19,7 @@ class DatabaseFactoryHelper
   ) {}
 
   /**
-   * @throws \ReflectionException
+   * @throws ReflectionException
    */
   public function resetResolvers(): void
   {
@@ -27,21 +30,21 @@ class DatabaseFactoryHelper
   public function modelNameResolver(): Closure
   {
     return function (Factory $factory) {
-      if (($module = $this->registry->moduleForClass(get_class($factory))) instanceof ConfigStore) {
-        return (string) Str::of(get_class($factory))
+      if (($module = $this->registry->moduleForClass($factory::class)) instanceof ConfigStore) {
+        return (string) Str::of($factory::class)
           ->replaceFirst($module->qualify($this->namespace()), '')
           ->replaceLast('Factory', '')
           ->prepend($module->qualify('Models'), '\\');
       }
 
-      // Temporarily disable the modular resolver if we're not in a module
-      try {
-        $this->unsetProperty(Factory::class, 'modelNameResolver');
+      // For non-module factories, use Laravel's default logic directly
+      // This avoids infinite recursion by not calling modelName() again
+      $modelName = Str::of($factory::class)
+        ->replaceLast('Factory', '')
+        ->replaceLast('Database\\Factories\\', '')
+        ->prepend('App\\Models\\');
 
-        return $factory->modelName();
-      } finally {
-        Factory::guessModelNamesUsing($this->modelNameResolver());
-      }
+      return (string) $modelName;
     };
   }
 
@@ -56,46 +59,48 @@ class DatabaseFactoryHelper
         return $module->qualify($this->namespace().$model_name.'Factory');
       }
 
-      // Temporarily disable the modular resolver if we're not in a module
-      try {
-        $this->unsetProperty(Factory::class, 'factoryNameResolver');
+      // For non-module models, use Laravel's configured factory namespace
+      // This avoids infinite recursion by not calling resolveFactoryName() again
+      $namespace = $this->namespace();
 
-        return Factory::resolveFactoryName($model_name);
-      } finally {
-        Factory::guessFactoryNamesUsing($this->factoryNameResolver());
-      }
+      // Handle both App\Models\Foo and App\Foo patterns
+      $factoryName = Str::of($model_name)
+        ->replaceFirst('App\\Models\\', $namespace)
+        ->replaceFirst('App\\', $namespace)
+        ->append('Factory');
+
+      return (string) $factoryName;
     };
   }
 
   /**
    * Because Factory::$namespace is protected, we need to access it via reflection.
    *
-   * @throws \ReflectionException
+   * @throws ReflectionException
    */
   public function namespace(): string
   {
-    return $this->namespace ??= $this->getProperty(Factory::class, 'namespace');
+    // Don't cache the namespace since it can change via Factory::useNamespace()
+    return $this->getProperty(Factory::class, 'namespace');
   }
 
   /**
-   * @return mixed
-   *
-   * @throws \ReflectionException
+   * @throws ReflectionException
    */
-  protected function getProperty($target, $property)
+  protected function getProperty($target, $property): mixed
   {
-    $reflection = new ReflectionProperty($target, $property);
+    $reflectionProperty = new ReflectionProperty($target, $property);
 
-    return $reflection->getValue();
+    return $reflectionProperty->getValue();
   }
 
   /**
-   * @throws \ReflectionException
+   * @throws ReflectionException
    */
   protected function unsetProperty($target, $property): void
   {
-    $reflection = new ReflectionProperty($target, $property);
+    $reflectionProperty = new ReflectionProperty($target, $property);
 
-    $reflection->setValue(null);
+    $reflectionProperty->setValue(null);
   }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Zen\Modulr\Support;
 
 use Illuminate\Support\Collection;
@@ -40,7 +42,7 @@ class Registry
   }
 
   /**
-   * @throws \Zen\Modulr\Exceptions\CannotFindModuleForPathException
+   * @throws CannotFindModuleForPathException
    */
   public function moduleForPathOrFail(string $path): ConfigStore
   {
@@ -53,8 +55,8 @@ class Registry
 
   public function moduleForClass(string $fqcn): ?ConfigStore
   {
-    return $this->modules()->first(function (ConfigStore $module) use ($fqcn): bool {
-      foreach ($module->namespaces as $namespace) {
+    return $this->modules()->first(function (ConfigStore $configStore) use ($fqcn): bool {
+      foreach ($configStore->namespaces as $namespace) {
         if (Str::startsWith($fqcn, $namespace)) {
           return true;
         }
@@ -97,9 +99,9 @@ class Registry
       ->in($this->modules_path)
       ->collect()
       ->mapWithKeys(function (SplFileInfo $path) {
-        $config = ConfigStore::fromComposerFile($path);
+        $configStore = ConfigStore::fromComposerFile($path);
 
-        return [$config->name => $config];
+        return [$configStore->name => $configStore];
       });
   }
 

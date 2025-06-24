@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Zen\Modulr\Support\PhpStorm;
 
 use SimpleXMLElement;
@@ -9,8 +11,8 @@ class LaravelConfigWriter extends ConfigWriter
 {
   public function write(): bool
   {
-    $plugin_config = $this->getNormalizedPluginConfig();
-    $template_paths = $plugin_config->xpath('//templatePath');
+    $normalizedPluginConfig = $this->getNormalizedPluginConfig();
+    $template_paths = $normalizedPluginConfig->xpath('//templatePath');
 
     // Clean up template paths to prevent duplicates
     foreach ($template_paths as $template_path_key => $existing) {
@@ -21,16 +23,16 @@ class LaravelConfigWriter extends ConfigWriter
 
     // Now add all modules to the config
     $modules_directory = config('modulr.modules_directory', 'modules');
-    $list = $plugin_config->xpath('//option[@name="templatePaths"]//list')[0];
+    $list = $normalizedPluginConfig->xpath('//option[@name="templatePaths"]//list')[0];
     $this->module_registry->modules()
       ->sortBy('name')
-      ->each(function (ConfigStore $module_config) use ($list, $modules_directory): void {
+      ->each(function (ConfigStore $configStore) use ($list, $modules_directory): void {
         $node = $list->addChild('templatePath');
-        $node->addAttribute('namespace', $module_config->name);
-        $node->addAttribute('path', "$modules_directory/$module_config->name/resources/views");
+        $node->addAttribute('namespace', $configStore->name);
+        $node->addAttribute('path', "$modules_directory/$configStore->name/resources/views");
       });
 
-    return file_put_contents($this->config_path, $this->formatXml($plugin_config)) !== false;
+    return file_put_contents($this->config_path, $this->formatXml($normalizedPluginConfig)) !== false;
   }
 
   protected function getNormalizedPluginConfig(): SimpleXMLElement

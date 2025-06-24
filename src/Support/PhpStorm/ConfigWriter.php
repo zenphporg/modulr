@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Zen\Modulr\Support\PhpStorm;
 
 use DOMDocument;
@@ -10,17 +12,9 @@ abstract class ConfigWriter
 {
   public string $last_error;
 
-  protected string $config_path;
-
-  protected Registry $module_registry;
-
   abstract public function write(): bool;
 
-  public function __construct(string $config_path, Registry $module_registry)
-  {
-    $this->config_path = $config_path;
-    $this->module_registry = $module_registry;
-  }
+  public function __construct(protected string $config_path, protected Registry $module_registry) {}
 
   public function handle(): bool
   {
@@ -53,12 +47,12 @@ abstract class ConfigWriter
 
   protected function formatXml(SimpleXMLElement $xml): string
   {
-    $dom = new DOMDocument('1.0', 'UTF-8');
-    $dom->formatOutput = true;
-    $dom->preserveWhiteSpace = false;
-    $dom->loadXML($xml->asXML());
+    $domDocument = new DOMDocument('1.0', 'UTF-8');
+    $domDocument->formatOutput = true;
+    $domDocument->preserveWhiteSpace = false;
+    $domDocument->loadXML($xml->asXML());
 
-    $xml = $dom->saveXML();
+    $xml = $domDocument->saveXML();
 
     return preg_replace('~(\S)/>\s*$~m', '$1 />', $xml);
   }

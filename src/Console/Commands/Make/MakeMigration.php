@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Zen\Modulr\Console\Commands\Make;
 
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Console\Migrations\MigrateMakeCommand;
 use Illuminate\Filesystem\Filesystem;
+use Override;
 use Zen\Modulr\Concerns\ConfiguresCommands;
+use Zen\Modulr\Support\ConfigStore;
 
 class MakeMigration extends MigrateMakeCommand
 {
@@ -13,13 +18,14 @@ class MakeMigration extends MigrateMakeCommand
   /**
    * @return array|string|string[]
    *
-   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   * @throws BindingResolutionException
    */
+  #[Override]
   protected function getMigrationPath()
   {
     $path = parent::getMigrationPath();
 
-    if (($module = $this->module()) instanceof \Zen\Modulr\Support\ConfigStore) {
+    if (($module = $this->module()) instanceof ConfigStore) {
       $app_directory = $this->laravel->databasePath('migrations');
       $module_directory = $module->path('database/migrations');
 

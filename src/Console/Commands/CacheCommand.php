@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Zen\Modulr\Console\Commands;
 
 use Illuminate\Console\Command;
@@ -26,9 +28,7 @@ class CacheCommand extends Command
     $this->call(ClearCommand::class);
 
     $export = $registry->modules()
-      ->map(function (ConfigStore $module_config): array {
-        return $module_config->toArray();
-      })
+      ->map(fn (ConfigStore $configStore): array => $configStore->toArray())
       ->toArray();
 
     $cache_path = $registry->getCachePath();

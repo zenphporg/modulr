@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Zen\Modulr\Console\Commands;
 
 use Illuminate\Console\Command;
@@ -93,14 +95,14 @@ class SyncCommand extends Command
   protected function updatePhpStormLaravelPlugin(): void
   {
     $config_path = $this->getLaravel()->basePath('.idea/laravel-plugin.xml');
-    $writer = new LaravelConfigWriter($config_path, $this->registry);
+    $laravelConfigWriter = new LaravelConfigWriter($config_path, $this->registry);
 
-    if ($writer->handle()) {
+    if ($laravelConfigWriter->handle()) {
       $this->info('Updated PhpStorm/Laravel Plugin config file...');
     } else {
       $this->info('Did not find/update PhpStorm/Laravel Plugin config.');
       if ($this->getOutput()->isVerbose()) {
-        $this->warn($writer->last_error);
+        $this->warn($laravelConfigWriter->last_error);
       }
     }
   }
@@ -108,14 +110,14 @@ class SyncCommand extends Command
   protected function updatePhpStormPhpConfig(): void
   {
     $config_path = $this->getLaravel()->basePath('.idea/php.xml');
-    $writer = new PhpFrameworkWriter($config_path, $this->registry);
+    $phpFrameworkWriter = new PhpFrameworkWriter($config_path, $this->registry);
 
-    if ($writer->handle()) {
+    if ($phpFrameworkWriter->handle()) {
       $this->info('Updated PhpStorm PHP config file...');
     } else {
       $this->info('Did not find/update PhpStorm PHP config.');
       if ($this->getOutput()->isVerbose()) {
-        $this->warn($writer->last_error);
+        $this->warn($phpFrameworkWriter->last_error);
       }
     }
   }
@@ -123,14 +125,14 @@ class SyncCommand extends Command
   protected function updatePhpStormWorkspaceConfig(): void
   {
     $config_path = $this->getLaravel()->basePath('.idea/workspace.xml');
-    $writer = new WorkspaceWriter($config_path, $this->registry);
+    $workspaceWriter = new WorkspaceWriter($config_path, $this->registry);
 
-    if ($writer->handle()) {
+    if ($workspaceWriter->handle()) {
       $this->info('Updated PhpStorm workspace library roots...');
     } else {
       $this->info('Did not find/update PhpStorm workspace config.');
       if ($this->getOutput()->isVerbose()) {
-        $this->warn($writer->last_error);
+        $this->warn($workspaceWriter->last_error);
       }
     }
   }
@@ -147,9 +149,9 @@ class SyncCommand extends Command
       ->name('*.iml')
       ->first(function (SplFileInfo $file): bool {
         $config_path = $file->getPathname();
-        $writer = new ProjectImlWriter($config_path, $this->registry);
+        $projectImlWriter = new ProjectImlWriter($config_path, $this->registry);
 
-        if ($writer->handle()) {
+        if ($projectImlWriter->handle()) {
           $this->info("Updated PhpStorm project source folders in '{$file->getBasename()}'");
 
           return true;
@@ -158,7 +160,7 @@ class SyncCommand extends Command
         $this->info("Could not update PhpStorm project source folders in '{$file->getBasename()}'");
 
         if ($this->getOutput()->isVerbose()) {
-          $this->warn($writer->last_error);
+          $this->warn($projectImlWriter->last_error);
         }
 
         return false;

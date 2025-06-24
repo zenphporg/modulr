@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Zen\Modulr\Console\Commands\Make;
 
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Foundation\Console\ComponentMakeCommand;
+use Override;
 use Zen\Modulr\Concerns\ConfiguresCommands;
+use Zen\Modulr\Support\ConfigStore;
 
 class MakeComponent extends ComponentMakeCommand
 {
@@ -12,11 +17,12 @@ class MakeComponent extends ComponentMakeCommand
   /**
    * @param  string  $path
    *
-   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   * @throws BindingResolutionException
    */
+  #[Override]
   protected function viewPath($path = ''): string
   {
-    if (($module = $this->module()) instanceof \Zen\Modulr\Support\ConfigStore) {
+    if (($module = $this->module()) instanceof ConfigStore) {
       return $module->path("resources/views/$path");
     }
 

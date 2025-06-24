@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Zen\Modulr\Console\Commands\Make;
 
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Console\Factories\FactoryMakeCommand;
 use Illuminate\Support\Str;
+use Override;
 use Zen\Modulr\Concerns\ConfiguresCommands;
+use Zen\Modulr\Support\ConfigStore;
 
 class MakeFactory extends FactoryMakeCommand
 {
@@ -13,11 +18,12 @@ class MakeFactory extends FactoryMakeCommand
   /**
    * @return \Zen\Modulr\Console\Commands\Make\MakeFactory
    *
-   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   * @throws BindingResolutionException
    */
+  #[Override]
   protected function replaceNamespace(&$stub, $name)
   {
-    if (($module = $this->module()) instanceof \Zen\Modulr\Support\ConfigStore) {
+    if (($module = $this->module()) instanceof ConfigStore) {
       $model = $this->option('model')
           ? $this->qualifyModel($this->option('model'))
           : $this->qualifyModel($this->guessModelName($name));
@@ -46,11 +52,12 @@ class MakeFactory extends FactoryMakeCommand
   /**
    * @return array|string
    *
-   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   * @throws BindingResolutionException
    */
+  #[Override]
   protected function guessModelName($name)
   {
-    if (($module = $this->module()) instanceof \Zen\Modulr\Support\ConfigStore) {
+    if (($module = $this->module()) instanceof ConfigStore) {
       if (Str::endsWith($name, 'Factory')) {
         $name = substr($name, 0, -7);
       }

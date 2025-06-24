@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Zen\Modulr\Providers;
 
 use Closure;
@@ -15,6 +17,7 @@ use Illuminate\Support\Str;
 use Illuminate\Translation\Translator;
 use Illuminate\View\Compilers\BladeCompiler;
 use Illuminate\View\Factory as ViewFactory;
+use Override;
 use ReflectionClass;
 use Symfony\Component\Finder\SplFileInfo;
 use Zen\Modulr\Console\Commands\CacheCommand;
@@ -43,6 +46,7 @@ class ModulrServiceProvider extends ServiceProvider
     parent::__construct($app);
   }
 
+  #[Override]
   public function register(): void
   {
     $this->mergeConfigFrom(dirname(__DIR__, 2).'/config/modulr.php', 'modulr');
@@ -50,18 +54,14 @@ class ModulrServiceProvider extends ServiceProvider
     $this->app->register(CommandsServiceProvider::class);
     $this->app->register(EventServiceProvider::class);
 
-    $this->app->singleton(Registry::class, function () {
-      return new Registry(
-        $this->getModulesBasePath(),
-        $this->app->bootstrapPath('cache/modules.php')
-      );
-    });
+    $this->app->singleton(Registry::class, fn (): Registry => new Registry(
+      $this->getModulesBasePath(),
+      $this->app->bootstrapPath('cache/modules.php')
+    ));
 
     $this->app->singleton(AutoDiscoveryHelper::class);
 
-    $this->app->singleton(MakeMigration::class, function ($app) {
-      return new MigrateMakeCommand($app['migration.creator'], $app['composer']);
-    });
+    $this->app->singleton(MakeMigration::class, fn ($app): MigrateMakeCommand => new MigrateMakeCommand($app['migration.creator'], $app['composer']));
 
     $this->registerEloquentFactories();
 
@@ -127,60 +127,60 @@ class ModulrServiceProvider extends ServiceProvider
 
     $this->autoDiscoveryHelper()
       ->routeFileFinder()
-      ->each(function (SplFileInfo $file) {
+      ->each(function (SplFileInfo $file): void {
         require $file->getRealPath();
       });
   }
 
   protected function bootViews(): void
   {
-    $this->callAfterResolving('view', function (ViewFactory $view_factory) {
+    $this->callAfterResolving('view', function (ViewFactory $viewFactory): void {
       $this->autoDiscoveryHelper()
         ->viewDirectoryFinder()
-        ->each(function (SplFileInfo $directory) use ($view_factory) {
-          $module = $this->registry()->moduleForPathOrFail($directory->getPath());
-          $view_factory->addNamespace($module->name, $directory->getRealPath());
+        ->each(function (SplFileInfo $directory) use ($viewFactory): void {
+          $configStore = $this->registry()->moduleForPathOrFail($directory->getPath());
+          $viewFactory->addNamespace($configStore->name, $directory->getRealPath());
         });
     });
   }
 
   protected function bootBladeComponents(): void
   {
-    $this->callAfterResolving(BladeCompiler::class, function (BladeCompiler $blade) {
+    $this->callAfterResolving(BladeCompiler::class, function (BladeCompiler $bladeCompiler): void {
       // Boot individual Blade components (old syntax: `<x-module-* />`)
       $this->autoDiscoveryHelper()
         ->bladeComponentFileFinder()
-        ->each(function (SplFileInfo $component) use ($blade) {
-          $module = $this->registry()->moduleForPathOrFail($component->getPath());
-          $fully_qualified_component = $module->pathToFullyQualifiedClassName($component->getPathname());
-          $blade->component($fully_qualified_component, null, $module->name);
+        ->each(function (SplFileInfo $component) use ($bladeCompiler): void {
+          $configStore = $this->registry()->moduleForPathOrFail($component->getPath());
+          $fully_qualified_component = $configStore->pathToFullyQualifiedClassName($component->getPathname());
+          $bladeCompiler->component($fully_qualified_component, null, $configStore->name);
         });
 
       // Boot Blade component namespaces (new syntax: `<x-module::* />`)
       $this->autoDiscoveryHelper()
         ->bladeComponentDirectoryFinder()
-        ->each(function (SplFileInfo $component) use ($blade) {
-          $module = $this->registry()->moduleForPathOrFail($component->getPath());
-          $blade->componentNamespace($module->qualify('View\\Components'), $module->name);
+        ->each(function (SplFileInfo $component) use ($bladeCompiler): void {
+          $configStore = $this->registry()->moduleForPathOrFail($component->getPath());
+          $bladeCompiler->componentNamespace($configStore->qualify('View\\Components'), $configStore->name);
         });
     });
   }
 
   protected function bootTranslations(): void
   {
-    $this->callAfterResolving('translator', function (TranslatorContract $translator) {
-      if (! $translator instanceof Translator) {
+    $this->callAfterResolving('translator', function (TranslatorContract $translatorContract): void {
+      if (! $translatorContract instanceof Translator) {
         return;
       }
 
       $this->autoDiscoveryHelper()
         ->langDirectoryFinder()
-        ->each(function (SplFileInfo $directory) use ($translator) {
-          $module = $this->registry()->moduleForPathOrFail($directory->getPath());
+        ->each(function (SplFileInfo $directory) use ($translatorContract): void {
+          $configStore = $this->registry()->moduleForPathOrFail($directory->getPath());
           $path = $directory->getRealPath();
 
-          $translator->addNamespace($module->name, $path);
-          $translator->addJsonPath($path);
+          $translatorContract->addNamespace($configStore->name, $path);
+          $translatorContract->addJsonPath($path);
         });
     });
   }
@@ -189,40 +189,40 @@ class ModulrServiceProvider extends ServiceProvider
   {
     $this->autoDiscoveryHelper()
       ->migrationDirectoryFinder()
-      ->each(function (SplFileInfo $path) use ($migrator) {
+      ->each(function (SplFileInfo $path) use ($migrator): void {
         $migrator->path($path->getRealPath());
       });
   }
 
   protected function registerEloquentFactories(): void
   {
-    $helper = new DatabaseFactoryHelper($this->registry());
+    $databaseFactoryHelper = new DatabaseFactoryHelper($this->registry());
 
-    EloquentFactory::guessModelNamesUsing($helper->modelNameResolver());
-    EloquentFactory::guessFactoryNamesUsing($helper->factoryNameResolver());
+    EloquentFactory::guessModelNamesUsing($databaseFactoryHelper->modelNameResolver());
+    EloquentFactory::guessFactoryNamesUsing($databaseFactoryHelper->factoryNameResolver());
   }
 
   protected function registerPolicies(Gate $gate): void
   {
     $this->autoDiscoveryHelper()
       ->modelFileFinder()
-      ->each(function (SplFileInfo $file) use ($gate) {
-        $module = $this->registry()->moduleForPathOrFail($file->getPath());
-        $fully_qualified_model = $module->pathToFullyQualifiedClassName($file->getPathname());
+      ->each(function (SplFileInfo $file) use ($gate): void {
+        $configStore = $this->registry()->moduleForPathOrFail($file->getPath());
+        $fully_qualified_model = $configStore->pathToFullyQualifiedClassName($file->getPathname());
 
         // First, check for a policy that maps to the full namespace of the model
         // i.e. Models/Foo/Bar -> Policies/Foo/BarPolicy
         $namespaced_model = Str::after($fully_qualified_model, 'Models\\');
-        $namespaced_policy = rtrim($module->namespaces->first(), '\\').'\\Policies\\'.$namespaced_model.'Policy';
+        $namespaced_policy = rtrim((string) $configStore->namespaces->first(), '\\').'\\Policies\\'.$namespaced_model.'Policy';
         if (class_exists($namespaced_policy)) {
           $gate->policy($fully_qualified_model, $namespaced_policy);
         }
 
         // If that doesn't match, try the simple mapping as well
         // i.e. Models/Foo/Bar -> Policies/BarPolicy
-        if (strpos($namespaced_model, '\\') !== false) {
+        if (str_contains($namespaced_model, '\\')) {
           $simple_model = Str::afterLast($fully_qualified_model, '\\');
-          $simple_policy = rtrim($module->namespaces->first(), '\\').'\\Policies\\'.$simple_model.'Policy';
+          $simple_policy = rtrim((string) $configStore->namespaces->first(), '\\').'\\Policies\\'.$simple_model.'Policy';
 
           if (class_exists($simple_policy)) {
             $gate->policy($fully_qualified_model, $simple_policy);
@@ -235,9 +235,9 @@ class ModulrServiceProvider extends ServiceProvider
   {
     $this->autoDiscoveryHelper()
       ->commandFileFinder()
-      ->each(function (SplFileInfo $file) use ($artisan) {
-        $module = $this->registry()->moduleForPathOrFail($file->getPath());
-        $class_name = $module->pathToFullyQualifiedClassName($file->getPathname());
+      ->each(function (SplFileInfo $file) use ($artisan): void {
+        $configStore = $this->registry()->moduleForPathOrFail($file->getPath());
+        $class_name = $configStore->pathToFullyQualifiedClassName($file->getPathname());
         if ($this->isInstantiableCommand($class_name)) {
           $artisan->resolve($class_name);
         }

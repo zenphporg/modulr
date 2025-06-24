@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Zen\Modulr\Support;
 
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use JsonException;
 use RuntimeException;
 use Symfony\Component\Finder\SplFileInfo;
 
@@ -13,7 +16,7 @@ class ConfigStore implements Arrayable
   public Collection $namespaces;
 
   /**
-   * @throws \JsonException
+   * @throws JsonException
    */
   public static function fromComposerFile(SplFileInfo $composer_file): self
   {

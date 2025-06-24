@@ -1,28 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.3/phpunit.xsd"
-  bootstrap="vendor/autoload.php"
-  cacheDirectory=".phpunit.cache"
-  executionOrder="depends,defects"
-  requireCoverageMetadata="false"
-  beStrictAboutCoverageMetadata="true"
-  beStrictAboutOutputDuringTests="true"
-  failOnRisky="true"
-  failOnWarning="true"
-  colors="true">
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" bootstrap="vendor/autoload.php" colors="true" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/12.1/phpunit.xsd" cacheDirectory=".phpunit.cache">
   <testsuites>
-    <testsuite name="Unit">
-      <directory>tests/Unit</directory>
-    </testsuite>
-    <testsuite name="Feature">
-      <directory>tests/Feature</directory>
+    <testsuite name="tests">
+      <directory>./tests</directory>
+      <exclude>./tests/app</exclude>
     </testsuite>
   </testsuites>
-  <source restrictNotices="true" restrictWarnings="true">
-    <include>
-      <directory suffix=".php">src</directory>
-    </include>
-  </source>
   <php>
     <env name="APP_ENV" value="testing"/>
     <env name="BCRYPT_ROUNDS" value="4"/>
@@ -30,5 +13,12 @@
     <env name="SESSION_DRIVER" value="array"/>
     <env name="QUEUE_DRIVER" value="sync"/>
     <env name="MAIL_DRIVER" value="array"/>
+    <env name="TERMINAL_EMULATOR" value="JetBrains-JediTerm"/>
   </php>
+  <source>
+    <include>
+      <directory suffix=".php">./src</directory>
+    </include>
+  </source>
+	<coverage></coverage>
 </phpunit>

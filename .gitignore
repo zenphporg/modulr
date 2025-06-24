@@ -24,3 +24,6 @@ npm-debug.log*
 .phpunit.cache
 composer.lock
 bun.lock
+
+# Rector cache
+/var

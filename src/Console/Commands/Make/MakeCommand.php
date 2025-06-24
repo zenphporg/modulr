@@ -1,32 +1,42 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Zen\Modulr\Console\Commands\Make;
 
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Foundation\Console\ConsoleMakeCommand;
 use Illuminate\Support\Str;
+use Override;
 use Zen\Modulr\Concerns\ConfiguresCommands;
+use Zen\Modulr\Support\ConfigStore;
 
 class MakeCommand extends ConsoleMakeCommand
 {
   use ConfiguresCommands;
 
   /**
-   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   * @throws BindingResolutionException
    */
+  #[Override]
   protected function replaceClass($stub, $name): array|string
   {
     $stub = parent::replaceClass($stub, $name);
+
+    $command = $this->option('command');
     $module = $this->module();
 
-    if ($module && (! $this->option('command') || $this->option('command') === 'command:name')) {
+    if ($module instanceof ConfigStore) {
+      if ($command) {
+        $stub = str_replace('command:name', $command, $stub);
+      } else {
+        $cli_name = Str::of($name)->classBasename()->kebab();
+        $stub = str_replace('command:name', "$module->name:$cli_name", $stub);
+      }
+    } else {
+      // Module not found, use default Laravel behavior
       $cli_name = Str::of($name)->classBasename()->kebab();
-
-      $find = [
-        "signature = 'command:name'",
-        "signature = 'app:$cli_name'",
-      ];
-
-      $stub = str_replace($find, "$module->name:$cli_name", $stub);
+      $stub = str_replace('command:name', "app:$cli_name", $stub);
     }
 
     return $stub;

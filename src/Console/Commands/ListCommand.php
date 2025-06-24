@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Zen\Modulr\Console\Commands;
 
 use Illuminate\Console\Command;
@@ -18,18 +20,16 @@ class ListCommand extends Command
     $namespace_title = 'Namespace';
 
     $table = $registry->modules()
-      ->map(function (ConfigStore $config) use (&$namespace_title): array {
-        $namespaces = $config->namespaces->map(function ($namespace): string {
-          return rtrim($namespace, '\\');
-        });
+      ->map(function (ConfigStore $configStore) use (&$namespace_title): array {
+        $namespaces = $configStore->namespaces->map(fn ($namespace): string => rtrim($namespace, '\\'));
 
-        if ($config->namespaces->count() > 1) {
+        if ($configStore->namespaces->count() > 1) {
           $namespace_title = 'Namespaces';
         }
 
         return [
-          $config->name,
-          Str::after(str_replace('\\', '/', $config->base_path), str_replace('\\', '/', $this->laravel->basePath()).'/'),
+          $configStore->name,
+          Str::after(str_replace('\\', '/', $configStore->base_path), str_replace('\\', '/', $this->laravel->basePath()).'/'),
           $namespaces->implode(', '),
         ];
       })

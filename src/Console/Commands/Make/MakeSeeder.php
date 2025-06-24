@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Zen\Modulr\Console\Commands\Make;
 
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Console\Seeds\SeederMakeCommand;
 use Illuminate\Support\Str;
+use Override;
 use Zen\Modulr\Concerns\ConfiguresCommands;
+use Zen\Modulr\Support\ConfigStore;
 
 class MakeSeeder extends SeederMakeCommand
 {
@@ -15,11 +20,12 @@ class MakeSeeder extends SeederMakeCommand
   /**
    * @return array|string
    *
-   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   * @throws BindingResolutionException
    */
+  #[Override]
   protected function getPath($name)
   {
-    if (($module = $this->module()) instanceof \Zen\Modulr\Support\ConfigStore) {
+    if (($module = $this->module()) instanceof ConfigStore) {
       $name = Str::replaceFirst($module->qualify('Database\\Seeders\\'), '', $name);
 
       return $this->getModularPath($name);
@@ -31,11 +37,12 @@ class MakeSeeder extends SeederMakeCommand
   /**
    * @return \Zen\Modulr\Console\Commands\Make\MakeSeeder
    *
-   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   * @throws BindingResolutionException
    */
+  #[Override]
   protected function replaceNamespace(&$stub, $name)
   {
-    if (($module = $this->module()) instanceof \Zen\Modulr\Support\ConfigStore && version_compare($this->getLaravel()->version(), '9.6.0', '<')) {
+    if (($module = $this->module()) instanceof ConfigStore && version_compare($this->getLaravel()->version(), '9.6.0', '<')) {
       $namespace = $module->qualify('Database\Seeders');
       $stub = str_replace('namespace Database\Seeders;', "namespace $namespace;", $stub);
     }
@@ -46,11 +53,12 @@ class MakeSeeder extends SeederMakeCommand
   /**
    * @return string
    *
-   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   * @throws BindingResolutionException
    */
+  #[Override]
   protected function rootNamespace()
   {
-    if (($module = $this->module()) instanceof \Zen\Modulr\Support\ConfigStore && version_compare($this->getLaravel()->version(), '9.6.0', '>=')) {
+    if (($module = $this->module()) instanceof ConfigStore && version_compare($this->getLaravel()->version(), '9.6.0', '>=')) {
       return $module->qualify('Database\Seeders');
     }
 

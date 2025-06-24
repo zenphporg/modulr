@@ -1,14 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Zen\Modulr\Console\Commands;
 
 use Composer\Factory;
 use Composer\Json\JsonFile;
+use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Seld\JsonLint\ParsingException;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 use Symfony\Component\Process\Process;
 use Zen\Modulr\Support\Registry;
@@ -48,15 +52,13 @@ class InstallCommand extends Command
    * Run our command function.
    *
    *
-   * @throws \Seld\JsonLint\ParsingException
+   * @throws ParsingException
    */
   public function handle(): int
   {
     $this->package_name = $this->argument('package');
 
-    $this->module_name = $this->option('name')
-      ? $this->option('name')
-      : basename($this->package_name);
+    $this->module_name = $this->option('name') ?: basename($this->package_name);
 
     $this->module_namespace = config('modulr.modules_namespace', 'Modules');
     $this->composer_namespace = config('modulr.modules_vendor') ?? Str::kebab($this->module_namespace);
@@ -90,14 +92,14 @@ class InstallCommand extends Command
     $process->setWorkingDirectory(base_path());
     $process->setTimeout(3600);
 
-    $bar = $this->output->createProgressBar(100);
-    $bar->start();
+    $progressBar = $this->output->createProgressBar(100);
+    $progressBar->start();
 
-    $process->run(function () use ($bar): void {
-      $bar->advance();
+    $process->run(function () use ($progressBar): void {
+      $progressBar->advance();
     });
 
-    $bar->finish();
+    $progressBar->finish();
 
     $this->newLine(2);
 
@@ -161,14 +163,14 @@ class InstallCommand extends Command
     $process->setWorkingDirectory(base_path());
     $process->setTimeout(3600);
 
-    $bar = $this->output->createProgressBar(100);
-    $bar->start();
+    $progressBar = $this->output->createProgressBar(100);
+    $progressBar->start();
 
-    $process->run(function () use ($bar): void {
-      $bar->advance();
+    $process->run(function () use ($progressBar): void {
+      $progressBar->advance();
     });
 
-    $bar->finish();
+    $progressBar->finish();
 
     $this->newLine(2);
 
@@ -182,8 +184,8 @@ class InstallCommand extends Command
   /**
    * Update our module composer file.
    *
-   * @throws \Seld\JsonLint\ParsingException
-   * @throws \Exception
+   * @throws ParsingException
+   * @throws Exception
    */
   protected function updateModuleComposerFile(): void
   {
@@ -191,8 +193,8 @@ class InstallCommand extends Command
 
     $file = $this->base_path.'/'.'composer.json';
 
-    $json_file = new JsonFile($file);
-    $definition = $json_file->read();
+    $jsonFile = new JsonFile($file);
+    $definition = $jsonFile->read();
 
     $keys = ['name', 'type', 'version', 'license', 'keywords', 'support', 'authors'];
     $definition = Arr::except($definition, $keys);
@@ -207,7 +209,7 @@ class InstallCommand extends Command
 
     $definition = array_merge($newDefinition, $definition);
 
-    $json_file->write($definition);
+    $jsonFile->write($definition);
 
     $this->line(" - Updated $this->composer_name composer.json file");
 
@@ -230,8 +232,8 @@ class InstallCommand extends Command
   /**
    * Update the project composer file.
    *
-   * @throws \Seld\JsonLint\ParsingException
-   * @throws \Exception
+   * @throws ParsingException
+   * @throws Exception
    */
   protected function updateCoreComposerConfig(): void
   {
@@ -240,8 +242,8 @@ class InstallCommand extends Command
     $original_working_dir = getcwd();
     chdir($this->laravel->basePath());
 
-    $json_file = new JsonFile(Factory::getComposerFile());
-    $definition = $json_file->read();
+    $jsonFile = new JsonFile(Factory::getComposerFile());
+    $definition = $jsonFile->read();
 
     if (! isset($definition['repositories'])) {
       $definition['repositories'] = [];
@@ -262,9 +264,7 @@ class InstallCommand extends Command
     $has_changes = false;
 
     $repository_already_exists = collect($definition['repositories'])
-      ->contains(function (array $repository) use ($module_config): bool {
-        return $repository['url'] === $module_config['url'];
-      });
+      ->contains(fn (array $repository): bool => $repository['url'] === $module_config['url']);
 
     if ($repository_already_exists === false) {
       $this->line(" - Adding path repository for <info>{$module_config['url']}</info>");
@@ -294,8 +294,8 @@ class InstallCommand extends Command
     }
 
     if ($has_changes) {
-      $json_file->write($definition);
-      $this->line(" - Wrote to <info>{$json_file->getPath()}</info>");
+      $jsonFile->write($definition);
+      $this->line(" - Wrote to <info>{$jsonFile->getPath()}</info>");
     } else {
       $this->line(' - Nothing to update (repository & require entry already exist)');
     }
@@ -310,31 +310,27 @@ class InstallCommand extends Command
    */
   protected function sortComposerPackages(array $packages): array
   {
-    $prefix = function ($requirement): array|string|null {
-      return preg_replace(
-        [
-          '/^php$/',
-          '/^hhvm-/',
-          '/^ext-/',
-          '/^lib-/',
-          '/^\D/',
-          '/^(?!php$|hhvm-|ext-|lib-)/',
-        ],
-        [
-          '0-$0',
-          '1-$0',
-          '2-$0',
-          '3-$0',
-          '4-$0',
-          '5-$0',
-        ],
-        $requirement
-      );
-    };
+    $prefix = (fn ($requirement): array|string|null => preg_replace(
+      [
+        '/^php$/',
+        '/^hhvm-/',
+        '/^ext-/',
+        '/^lib-/',
+        '/^\D/',
+        '/^(?!php$|hhvm-|ext-|lib-)/',
+      ],
+      [
+        '0-$0',
+        '1-$0',
+        '2-$0',
+        '3-$0',
+        '4-$0',
+        '5-$0',
+      ],
+      (string) $requirement
+    ));
 
-    uksort($packages, function ($a, $b) use ($prefix): int {
-      return strnatcmp($prefix($a), $prefix($b));
-    });
+    uksort($packages, fn ($a, $b): int => strnatcmp($prefix($a), $prefix($b)));
 
     return $packages;
   }
@@ -344,10 +340,10 @@ class InstallCommand extends Command
    */
   protected function setUpStyles(): void
   {
-    $formatter = $this->getOutput()->getFormatter();
+    $outputFormatter = $this->getOutput()->getFormatter();
 
-    if (! $formatter->hasStyle('kbd')) {
-      $formatter->setStyle('kbd', new OutputFormatterStyle('cyan'));
+    if (! $outputFormatter->hasStyle('kbd')) {
+      $outputFormatter->setStyle('kbd', new OutputFormatterStyle('cyan'));
     }
   }
 

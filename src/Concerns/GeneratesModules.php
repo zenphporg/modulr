@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Zen\Modulr\Concerns;
 
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Symfony\Component\Console\Exception\InvalidOptionException;
 use Symfony\Component\Console\Input\InputOption;
 use Zen\Modulr\Support\ConfigStore;
@@ -10,7 +13,7 @@ use Zen\Modulr\Support\Registry;
 trait GeneratesModules
 {
   /**
-   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   * @throws BindingResolutionException
    */
   protected function module(): ?ConfigStore
   {

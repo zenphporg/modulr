@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Zen\Modulr\Providers;
 
 use Illuminate\Console\Application as Artisan;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Console\Migrations\MigrateMakeCommand as OriginalMakeMigrationCommand;
 use Illuminate\Support\ServiceProvider;
+use Override;
 use Zen\Modulr\Console\Commands\Database\SeedCommand;
 use Zen\Modulr\Console\Commands\Make\MakeCast;
 use Zen\Modulr\Console\Commands\Make\MakeChannel;
@@ -62,6 +65,7 @@ class CommandsServiceProvider extends ServiceProvider
     'command.seed' => SeedCommand::class,
   ];
 
+  #[Override]
   public function register(): void
   {
     // Register our overrides via the "booted" event to ensure that we override
@@ -92,13 +96,9 @@ class CommandsServiceProvider extends ServiceProvider
   protected function registerMigrationCommandOverrides()
   {
     // Laravel 8
-    $this->app->singleton('command.migrate.make', function (Application $app): MakeMigration {
-      return new MakeMigration($app['migration.creator'], $app['composer']);
-    });
+    $this->app->singleton('command.migrate.make', fn (Application $application): MakeMigration => new MakeMigration($application['migration.creator'], $application['composer']));
 
     // Laravel 9
-    $this->app->singleton(OriginalMakeMigrationCommand::class, function (Application $app): MakeMigration {
-      return new MakeMigration($app['migration.creator'], $app['composer']);
-    });
+    $this->app->singleton(OriginalMakeMigrationCommand::class, fn (Application $application): MakeMigration => new MakeMigration($application['migration.creator'], $application['composer']));
   }
 }

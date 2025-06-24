@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Zen\Modulr;
 
 use Illuminate\Console\Application as Artisan;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Auth\Access\Gate;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Translation\Translator as TranslatorContract;
 use Illuminate\Database\Console\Migrations\MigrateMakeCommand;
 use Illuminate\Database\Eloquent\Factories\Factory as EloquentFactory;
@@ -14,6 +17,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\View\Compilers\BladeCompiler;
 use Illuminate\View\Factory as ViewFactory;
+use Override;
 use ReflectionClass;
 use Symfony\Component\Finder\SplFileInfo;
 use Zen\Modulr\Console\Commands\CacheCommand;
@@ -23,6 +27,7 @@ use Zen\Modulr\Console\Commands\ListCommand;
 use Zen\Modulr\Console\Commands\Make\MakeMigration;
 use Zen\Modulr\Console\Commands\Make\MakeModule;
 use Zen\Modulr\Console\Commands\SyncCommand;
+use Zen\Modulr\Exceptions\CannotFindModuleForPathException;
 use Zen\Modulr\Providers\CommandsServiceProvider;
 use Zen\Modulr\Providers\EventServiceProvider;
 use Zen\Modulr\Support\AutoDiscoveryHelper;
@@ -40,8 +45,9 @@ class ModulrServiceProvider extends ServiceProvider
   protected ?string $modules_path = null;
 
   /**
-   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   * @throws BindingResolutionException
    */
+  #[Override]
   public function register(): void
   {
     $this->mergeConfigFrom(dirname(__DIR__).'/config/modulr.php', 'modulr');
@@ -55,18 +61,14 @@ class ModulrServiceProvider extends ServiceProvider
     $this->app->register(CommandsServiceProvider::class);
     $this->app->register(EventServiceProvider::class);
 
-    $this->app->singleton(Registry::class, function (): Registry {
-      return new Registry(
-        $this->getModulesBasePath(),
-        $this->app->bootstrapPath('cache/modules.php')
-      );
-    });
+    $this->app->singleton(Registry::class, fn (): Registry => new Registry(
+      $this->getModulesBasePath(),
+      $this->app->bootstrapPath('cache/modules.php')
+    ));
 
     $this->app->singleton(AutoDiscoveryHelper::class);
 
-    $this->app->singleton(MakeMigration::class, function (array $app): MigrateMakeCommand {
-      return new MigrateMakeCommand($app['migration.creator'], $app['composer']);
-    });
+    $this->app->singleton(MakeMigration::class, fn ($app): MigrateMakeCommand => new MigrateMakeCommand($app['migration.creator'], $app['composer']));
 
     $this->registerEloquentFactories();
 
@@ -81,8 +83,8 @@ class ModulrServiceProvider extends ServiceProvider
   }
 
   /**
-   * @throws \Illuminate\Contracts\Container\BindingResolutionException
-   * @throws \Zen\Modulr\Exceptions\CannotFindModuleForPathException
+   * @throws BindingResolutionException
+   * @throws CannotFindModuleForPathException
    */
   public function boot(): void
   {
@@ -96,7 +98,7 @@ class ModulrServiceProvider extends ServiceProvider
   }
 
   /**
-   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   * @throws BindingResolutionException
    */
   protected function registry(): Registry
   {
@@ -104,7 +106,7 @@ class ModulrServiceProvider extends ServiceProvider
   }
 
   /**
-   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   * @throws BindingResolutionException
    */
   protected function autoDiscoveryHelper(): AutoDiscoveryHelper
   {
@@ -135,7 +137,7 @@ class ModulrServiceProvider extends ServiceProvider
   }
 
   /**
-   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   * @throws BindingResolutionException
    */
   protected function bootRoutes(): void
   {
@@ -151,69 +153,69 @@ class ModulrServiceProvider extends ServiceProvider
   }
 
   /**
-   * @throws \Illuminate\Contracts\Container\BindingResolutionException
-   * @throws \Zen\Modulr\Exceptions\CannotFindModuleForPathException
+   * @throws BindingResolutionException
+   * @throws CannotFindModuleForPathException
    */
   protected function bootViews(): void
   {
-    $this->callAfterResolving('view', function (ViewFactory $view_factory): void {
+    $this->callAfterResolving('view', function (ViewFactory $viewFactory): void {
       $this->autoDiscoveryHelper()
         ->viewDirectoryFinder()
-        ->each(function (SplFileInfo $directory) use ($view_factory): void {
-          $module = $this->registry()->moduleForPathOrFail($directory->getPath());
-          $view_factory->addNamespace($module->name, $directory->getRealPath());
+        ->each(function (SplFileInfo $directory) use ($viewFactory): void {
+          $configStore = $this->registry()->moduleForPathOrFail($directory->getPath());
+          $viewFactory->addNamespace($configStore->name, $directory->getRealPath());
         });
     });
   }
 
   /**
-   * @throws \Illuminate\Contracts\Container\BindingResolutionException
-   * @throws \Zen\Modulr\Exceptions\CannotFindModuleForPathException
+   * @throws BindingResolutionException
+   * @throws CannotFindModuleForPathException
    */
   protected function bootBladeComponents(): void
   {
-    $this->callAfterResolving(BladeCompiler::class, function (BladeCompiler $blade): void {
+    $this->callAfterResolving(BladeCompiler::class, function (BladeCompiler $bladeCompiler): void {
       // Boot individual Blade components (old syntax: `<x-module-* />`)
       $this->autoDiscoveryHelper()
         ->bladeComponentFileFinder()
-        ->each(function (SplFileInfo $component) use ($blade): void {
-          $module = $this->registry()->moduleForPathOrFail($component->getPath());
-          $fully_qualified_component = $module->pathToFullyQualifiedClassName($component->getPathname());
-          $blade->component($fully_qualified_component, null, $module->name);
+        ->each(function (SplFileInfo $component) use ($bladeCompiler): void {
+          $configStore = $this->registry()->moduleForPathOrFail($component->getPath());
+          $fully_qualified_component = $configStore->pathToFullyQualifiedClassName($component->getPathname());
+          $bladeCompiler->component($fully_qualified_component, null, $configStore->name);
         });
 
       // Boot Blade component namespaces (new syntax: `<x-module::* />`)
       $this->autoDiscoveryHelper()
         ->bladeComponentDirectoryFinder()
-        ->each(function (SplFileInfo $component) use ($blade): void {
-          $module = $this->registry()->moduleForPathOrFail($component->getPath());
-          $blade->componentNamespace($module->qualify('View\\Components'), $module->name);
+        ->each(function (SplFileInfo $component) use ($bladeCompiler): void {
+          $configStore = $this->registry()->moduleForPathOrFail($component->getPath());
+          $bladeCompiler->componentNamespace($configStore->qualify('View\\Components'), $configStore->name);
         });
     });
   }
 
   /**
-   * @throws \Illuminate\Contracts\Container\BindingResolutionException
-   * @throws \Zen\Modulr\Exceptions\CannotFindModuleForPathException
+   * @throws BindingResolutionException
+   * @throws CannotFindModuleForPathException
    */
   protected function bootTranslations(): void
   {
-    $this->callAfterResolving('translator', function (TranslatorContract $translator): void {
+    $this->callAfterResolving('translator', function (TranslatorContract $translatorContract): void {
 
       $this->autoDiscoveryHelper()
         ->langDirectoryFinder()
-        ->each(function (SplFileInfo $directory) use ($translator): void {
-          $module = $this->registry()->moduleForPathOrFail($directory->getPath());
+        ->each(function (SplFileInfo $directory) use ($translatorContract): void {
+          $configStore = $this->registry()->moduleForPathOrFail($directory->getPath());
           $path = $directory->getRealPath();
 
-          $translator->addNamespace($module->name, $path);
-          $translator->addJsonPath($path);
+          $translatorContract->addNamespace($configStore->name, $path);
+          $translatorContract->addJsonPath($path);
         });
     });
   }
 
   /**
-   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   * @throws BindingResolutionException
    */
   protected function registerMigrations(Migrator $migrator): void
   {
@@ -225,32 +227,32 @@ class ModulrServiceProvider extends ServiceProvider
   }
 
   /**
-   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   * @throws BindingResolutionException
    */
   protected function registerEloquentFactories(): void
   {
-    $helper = new DatabaseFactoryHelper($this->registry());
+    $databaseFactoryHelper = new DatabaseFactoryHelper($this->registry());
 
-    EloquentFactory::guessModelNamesUsing($helper->modelNameResolver());
-    EloquentFactory::guessFactoryNamesUsing($helper->factoryNameResolver());
+    EloquentFactory::guessModelNamesUsing($databaseFactoryHelper->modelNameResolver());
+    EloquentFactory::guessFactoryNamesUsing($databaseFactoryHelper->factoryNameResolver());
   }
 
   /**
-   * @throws \Illuminate\Contracts\Container\BindingResolutionException
-   * @throws \Zen\Modulr\Exceptions\CannotFindModuleForPathException
+   * @throws BindingResolutionException
+   * @throws CannotFindModuleForPathException
    */
   protected function registerPolicies(Gate $gate): void
   {
     $this->autoDiscoveryHelper()
       ->modelFileFinder()
       ->each(function (SplFileInfo $file) use ($gate): void {
-        $module = $this->registry()->moduleForPathOrFail($file->getPath());
-        $fully_qualified_model = $module->pathToFullyQualifiedClassName($file->getPathname());
+        $configStore = $this->registry()->moduleForPathOrFail($file->getPath());
+        $fully_qualified_model = $configStore->pathToFullyQualifiedClassName($file->getPathname());
 
         // First, check for a policy that maps to the full namespace of the model
         // i.e. Models/Foo/Bar -> Policies/Foo/BarPolicy
         $namespaced_model = Str::after($fully_qualified_model, 'Models\\');
-        $namespaced_policy = rtrim($module->namespaces->first(), '\\').'\\Policies\\'.$namespaced_model.'Policy';
+        $namespaced_policy = rtrim((string) $configStore->namespaces->first(), '\\').'\\Policies\\'.$namespaced_model.'Policy';
         if (class_exists($namespaced_policy)) {
           $gate->policy($fully_qualified_model, $namespaced_policy);
         }
@@ -259,7 +261,7 @@ class ModulrServiceProvider extends ServiceProvider
         // i.e. Models/Foo/Bar -> Policies/BarPolicy
         if (str_contains($namespaced_model, '\\')) {
           $simple_model = Str::afterLast($fully_qualified_model, '\\');
-          $simple_policy = rtrim($module->namespaces->first(), '\\').'\\Policies\\'.$simple_model.'Policy';
+          $simple_policy = rtrim((string) $configStore->namespaces->first(), '\\').'\\Policies\\'.$simple_model.'Policy';
 
           if (class_exists($simple_policy)) {
             $gate->policy($fully_qualified_model, $simple_policy);
@@ -269,16 +271,16 @@ class ModulrServiceProvider extends ServiceProvider
   }
 
   /**
-   * @throws \Illuminate\Contracts\Container\BindingResolutionException
-   * @throws \Zen\Modulr\Exceptions\CannotFindModuleForPathException
+   * @throws BindingResolutionException
+   * @throws CannotFindModuleForPathException
    */
   protected function registerCommands(Artisan $artisan): void
   {
     $this->autoDiscoveryHelper()
       ->commandFileFinder()
       ->each(function (SplFileInfo $file) use ($artisan): void {
-        $module = $this->registry()->moduleForPathOrFail($file->getPath());
-        $class_name = $module->pathToFullyQualifiedClassName($file->getPathname());
+        $configStore = $this->registry()->moduleForPathOrFail($file->getPath());
+        $class_name = $configStore->pathToFullyQualifiedClassName($file->getPathname());
         if ($this->isInstantiableCommand($class_name)) {
           $artisan->resolve($class_name);
         }
@@ -296,7 +298,7 @@ class ModulrServiceProvider extends ServiceProvider
   }
 
   /**
-   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   * @throws BindingResolutionException
    */
   protected function getModulesBasePath(): string
   {

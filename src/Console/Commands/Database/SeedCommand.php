@@ -1,22 +1,29 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Zen\Modulr\Console\Commands\Database;
 
+use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
+use Override;
 use Zen\Modulr\Concerns\GeneratesModules;
+use Zen\Modulr\Support\ConfigStore;
 
 class SeedCommand extends \Illuminate\Database\Console\Seeds\SeedCommand
 {
   use GeneratesModules;
 
   /**
-   * @return \Illuminate\Database\Seeder
+   * @return Seeder
    *
-   * @throws \Illuminate\Contracts\Container\BindingResolutionException
+   * @throws BindingResolutionException
    */
+  #[Override]
   protected function getSeeder()
   {
-    if (($module = $this->module()) instanceof \Zen\Modulr\Support\ConfigStore) {
+    if (($module = $this->module()) instanceof ConfigStore) {
       $default = $this->getDefinition()->getOption('class')->getDefault();
       $class = $this->input->getOption('class');
 

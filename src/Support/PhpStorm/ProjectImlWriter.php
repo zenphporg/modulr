@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Zen\Modulr\Support\PhpStorm;
 
 use SimpleXMLElement;
@@ -11,36 +13,34 @@ class ProjectImlWriter extends ConfigWriter
   {
     $modules_directory = config('modulr.modules_directory', 'modules');
 
-    $iml = $this->getNormalizedPluginConfig();
-    $source_folders = $iml->xpath('//component[@name="NewModuleRootManager"]//content[@url="file://$MODULE_DIR$"]//sourceFolder');
-    $existing_urls = collect($source_folders)->map(function (SimpleXMLElement $node): string {
-      return (string) $node['url'];
-    });
+    $normalizedPluginConfig = $this->getNormalizedPluginConfig();
+    $source_folders = $normalizedPluginConfig->xpath('//component[@name="NewModuleRootManager"]//content[@url="file://$MODULE_DIR$"]//sourceFolder');
+    $existing_urls = collect($source_folders)->map(fn (SimpleXMLElement $node): string => (string) $node['url']);
 
     // Now add all missing modules to the config
-    $content = $iml->xpath('//component[@name="NewModuleRootManager"]//content[@url="file://$MODULE_DIR$"]')[0];
+    $content = $normalizedPluginConfig->xpath('//component[@name="NewModuleRootManager"]//content[@url="file://$MODULE_DIR$"]')[0];
     $this->module_registry->modules()
       ->sortBy('name')
-      ->each(function (ConfigStore $module_config) use (&$content, $modules_directory, $existing_urls): void {
-        $src_url = "file://\$MODULE_DIR\$/$modules_directory/$module_config->name/src";
+      ->each(function (ConfigStore $configStore) use (&$content, $modules_directory, $existing_urls): void {
+        $src_url = "file://\$MODULE_DIR\$/$modules_directory/$configStore->name/src";
 
         if (! $existing_urls->contains($src_url)) {
           $src_node = $content->addChild('sourceFolder');
           $src_node->addAttribute('url', $src_url);
           $src_node->addAttribute('isTestSource', 'false');
-          $src_node->addAttribute('packagePrefix', rtrim($module_config->namespaces->first(), '\\'));
+          $src_node->addAttribute('packagePrefix', rtrim((string) $configStore->namespaces->first(), '\\'));
         }
 
-        $tests_url = "file://\$MODULE_DIR\$/$modules_directory/$module_config->name/tests";
+        $tests_url = "file://\$MODULE_DIR\$/$modules_directory/$configStore->name/tests";
         if (! $existing_urls->contains($tests_url)) {
           $tests_node = $content->addChild('sourceFolder');
           $tests_node->addAttribute('url', $tests_url);
           $tests_node->addAttribute('isTestSource', 'true');
-          $tests_node->addAttribute('packagePrefix', rtrim($module_config->namespaces->first(), '\\').'\\Tests');
+          $tests_node->addAttribute('packagePrefix', rtrim((string) $configStore->namespaces->first(), '\\').'\\Tests');
         }
       });
 
-    return file_put_contents($this->config_path, $this->formatXml($iml)) !== false;
+    return file_put_contents($this->config_path, $this->formatXml($normalizedPluginConfig)) !== false;
   }
 
   protected function getNormalizedPluginConfig(): SimpleXMLElement
