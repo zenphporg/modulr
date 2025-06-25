@@ -11,7 +11,7 @@ use Zen\Modulr\Tests\TestCase;
  * case class. By default, that class is "PHPUnit\Framework\TestCase". Of course, you may
  * need to change it using the "pest()" function to bind a different classes or traits.
  */
-pest()->extend(TestCase::class)->in(__DIR__);
+pest()->extend(TestCase::class)->in('Feature');
 
 /**
  * EXPECTATIONS
@@ -106,7 +106,7 @@ register_shutdown_function(function () {
 
   if (is_dir($testsAppDir)) {
     try {
-      $filesystem = new \Illuminate\Filesystem\Filesystem();
+      $filesystem = new \Illuminate\Filesystem\Filesystem;
       $filesystem->deleteDirectory($testsAppDir);
 
       // Only show message if we're in a terminal (not during CI/automated runs)
