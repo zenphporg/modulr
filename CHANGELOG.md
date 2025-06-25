@@ -1,5 +1,17 @@
 # Release Notes
 
+## [1.0.12](https://github.com/zenphporg/modulr/compare/v1.0.11...v1.0.12) (2025-06-25)
+
+
+### Code Refactoring
+
+* add coverage testing with badge ([f35a573](https://github.com/zenphporg/modulr/commit/f35a573772b43c42a8e4c45fcd3f824093f7b54d))
+
+
+### Maintenance
+
+* typo in readme badge ([8ab6c23](https://github.com/zenphporg/modulr/commit/8ab6c23a5b7d34a01906399a19f7c5b754f62ebf))
+
 ## [1.0.11](https://github.com/zenphporg/modulr/compare/v1.0.10...v1.0.11) (2025-06-25)
 
 
