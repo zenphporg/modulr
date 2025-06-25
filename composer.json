@@ -31,7 +31,6 @@
     "zenphp/fixr": "^1.0.3",
     "rector/rector": "^2.0",
     "pestphp/pest": "^3.8",
-    "pestphp/pest-plugin-drift": "^3.0",
     "orchestra/testbench": "^10.4"
   },
   "autoload": {
@@ -45,7 +44,9 @@
     }
   },
   "scripts": {
-    "fix": "vendor/bin/fixr"
+    "fix": "vendor/bin/fixr",
+    "test": "vendor/bin/pest",
+    "analyze": "phpstan analyze"
   },
   "extra": {
     "laravel": {
@@ -61,8 +62,7 @@
   "prefer-stable": true,
   "config": {
     "allow-plugins": {
-      "pestphp/pest-plugin": true,
-      "pestphp/pest-plugin-drift": true
+      "pestphp/pest-plugin": true
     }
   }
 }

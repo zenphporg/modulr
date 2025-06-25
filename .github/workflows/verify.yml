@@ -1,0 +1,37 @@
+name: Verify Commits
+
+on:
+  workflow_call:
+    outputs:
+      is_valid:
+        description: 'Whether commits follow conventional commit format'
+        value: ${{ jobs.verify.outputs.is_valid }}
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    outputs:
+      is_valid: ${{ steps.check_commits.outputs.is_valid }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install commitlint
+        run: bun add -d @commitlint/config-conventional @commitlint/cli
+
+      - name: Verify conventional commits
+        id: check_commits
+        run: |
+          if bunx commitlint --from HEAD~1 --to HEAD --verbose; then
+            echo "Commits follow conventional format"
+            echo "is_valid=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Commits do not follow conventional format"
+            echo "is_valid=false" >> "$GITHUB_OUTPUT"
+          fi

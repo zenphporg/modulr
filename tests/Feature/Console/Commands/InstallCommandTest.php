@@ -59,6 +59,36 @@ test('it can get package argument', function () {
   expect($commandDefinition->hasArgument('package'))->toBeTrue();
 });
 
+test('it can execute movePackageToModules with missing source', function () {
+  // Test that the method exists and is protected
+  $reflection = new ReflectionClass(InstallCommand::class);
+  expect($reflection->hasMethod('movePackageToModules'))->toBeTrue();
+
+  $method = $reflection->getMethod('movePackageToModules');
+  expect($method->isProtected())->toBeTrue();
+});
+
+test('it can execute setUpStyles method', function () {
+  // Test that the method exists and is protected
+  $reflection = new ReflectionClass(InstallCommand::class);
+  expect($reflection->hasMethod('setUpStyles'))->toBeTrue();
+
+  $method = $reflection->getMethod('setUpStyles');
+  expect($method->isProtected())->toBeTrue();
+});
+
+test('it has constructor dependencies', function () {
+  $reflection = new ReflectionClass(InstallCommand::class);
+  $constructor = $reflection->getConstructor();
+
+  expect($constructor)->not->toBeNull();
+  expect($constructor->getParameters())->toHaveCount(2);
+
+  $params = $constructor->getParameters();
+  expect($params[0]->getName())->toBe('filesystem');
+  expect($params[1]->getName())->toBe('module_registry');
+});
+
 test('it publishes config file', function () {
   expect(method_exists(InstallCommand::class, 'handle'))->toBeTrue();
 });

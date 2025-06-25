@@ -1,0 +1,34 @@
+name: Main Branch Workflow
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+  packages: write
+  issues: write
+
+jobs:
+  verify:
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/verify.yml
+
+  test:
+    needs: verify
+    uses: ./.github/workflows/test.yml
+    with:
+      ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+  release:
+    if: |
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      needs.verify.outputs.is_valid == 'true'
+    needs: [verify, test]
+    uses: ./.github/workflows/release.yml

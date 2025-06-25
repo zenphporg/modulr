@@ -1,32 +1,34 @@
-name: release
+name: Release
 
 on:
-  push:
-    branches:
-      - 'main'
-
-  workflow_dispatch:
+  workflow_call:
 
 jobs:
   release:
-    name: Release *.x Branch
+    name: Run Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      packages: write
+
     steps:
-      - name: Checkout Main
-        uses: actions/checkout@v3
+      - name: Checkout Branch
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Setup Node
-        uses: actions/setup-node@v3.6.0
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
         with:
-          node-version: '23.11.0'
+          bun-version: latest
 
       - name: Install Dependencies
-        run: npm install
+        run: bun install
 
       - name: Run Semantic Release
         env:
-          GITHUB_TOKEN: ${{ secrets.SEMVER_RELEASE }}
-        run: npx semantic-release
+          GITHUB_TOKEN: ${{ github.token }}
+        run: bunx semantic-release

@@ -1,0 +1,22 @@
+name: Maintenance Branch Workflow
+
+on:
+  push:
+    branches:
+      - '*.x'
+
+permissions:
+  contents: write
+  pull-requests: write
+  packages: write
+  issues: write
+
+jobs:
+  verify:
+    uses: ./.github/workflows/verify.yml
+
+  test:
+    needs: verify
+    uses: ./.github/workflows/test.yml
+    with:
+      ref: ${{ github.sha }}
