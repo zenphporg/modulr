@@ -1,5 +1,21 @@
 # Release Notes
 
+## [1.0.11](https://github.com/zenphporg/modulr/compare/v1.0.10...v1.0.11) (2025-06-25)
+
+
+### Bug Fixes
+
+* add build badges to readme ([a5e4a77](https://github.com/zenphporg/modulr/commit/a5e4a77e61bda51700f068ded92f49417386c1e9))
+* remove prepare from package.json ([252695c](https://github.com/zenphporg/modulr/commit/252695ca8cb5b82452fc5c47f79ce98af7cc10ff))
+
+
+### Work in Progress
+
+* added static analysis ([6d43cdb](https://github.com/zenphporg/modulr/commit/6d43cdbd006e446c6681e3d4350369cbbfcd2f32))
+* beef up static analysis with larastan ([1145a6d](https://github.com/zenphporg/modulr/commit/1145a6d4253c385a1b1563236f80a72d6450f3f3))
+* fixed makecontroller test ([f177ab2](https://github.com/zenphporg/modulr/commit/f177ab2329d712749634dea3e3e6e7e56539d18e))
+* replaced workflows and continue adding tests ([5909b30](https://github.com/zenphporg/modulr/commit/5909b3045a1e05ffa41d5e29cdebb99d8810cfbc))
+
 ## [1.0.10](https://github.com/zenphporg/modulr/compare/v1.0.9...v1.0.10) (2025-06-25)
 
 
