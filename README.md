@@ -1,5 +1,12 @@
 ![Zen Foundation](https://raw.githubusercontent.com/zenphporg/.github/main/img/zenphp.png)
 
+<p align="center">
+<a href="https://github.com/zenphporg/modulr/actions"><img src="https://github.com/zenphporg/modulr/workflows/tests/badge.svg" alt="Build Status"></a>
+<a href="https://packagist.org/packages/zenphp/modulr"><img src="https://img.shields.io/packagist/dt/zenphp/modulr" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/zenphp/modulr"><img src="https://img.shields.io/packagist/v/zenphp/modulr" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/zenphp/modulr"><img src="https://img.shields.io/packagist/l/zenphp/modulr" alt="License"></a>
+</p>
+
 ## About Modulr
 
 Modulr is a module system for Laravel applications. It uses [Composer path repositories](https://getcomposer.org/doc/05-repositories.md#path) for autoloading, and [Laravel package discovery](https://laravel.com/docs/7.x/packages#package-discovery) for module initialization, and then provides minimal tooling to fill in any gaps.
