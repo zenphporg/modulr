@@ -32,7 +32,6 @@
     "rector/rector": "^2.0",
     "pestphp/pest": "^3.8",
     "orchestra/testbench": "^10.4",
-    "phpstan/phpstan": "^2.0",
     "larastan/larastan": "^3.0"
   },
   "autoload": {

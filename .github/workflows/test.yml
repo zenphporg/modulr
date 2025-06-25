@@ -32,7 +32,7 @@ jobs:
           coverage: pcov
 
       - name: Install Dependencies
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader --dev
 
       - name: Run Static Analysis
         run: composer analyze
