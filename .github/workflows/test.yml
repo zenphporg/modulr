@@ -35,7 +35,7 @@ jobs:
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
       - name: Run Static Analysis
-        run: composer analyse
+        run: composer analyze
 
       - name: Run Tests
         run: composer test

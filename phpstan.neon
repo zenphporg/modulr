@@ -1,0 +1,34 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 6
+    paths:
+        - src
+    excludePaths:
+        - tests
+    ignoreErrors:
+        # Allow our custom Finder methods
+        - '#Call to an undefined method Symfony\\Component\\Finder\\Finder::(inOrEmpty|collect|first)\(\)#'
+        # Allow unsafe usage of new static() in our utility classes
+        - '#Unsafe usage of new static\(\)#'
+        # Allow mixed types for Laravel's dynamic properties
+        - '#Call to an undefined method Illuminate\\.*::#'
+        - '#Access to an undefined property Illuminate\\.*::\$#'
+        # Allow Laravel's magic methods
+        - '#Method .* has no return type specified#'
+        # Allow Laravel's container bindings
+        - '#Parameter .* of method .* has no type hint#'
+        # Allow negated boolean expressions that are always false (defensive programming)
+        - '#Negated boolean expression is always false#'
+        # Allow Laravel migration command method calls
+        - '#Call to an undefined static method Illuminate\\Database\\Console\\Migrations\\MigrateMakeCommand::(getDefaultNamespace|qualifyClass|qualifyModel|getPath)\(\)#'
+        # Allow return type issues in console commands
+        - '#Return type \(void\) of method .*(InstallCommand|MakeModule)::newLine\(\) should be compatible with return type#'
+        # Allow anonymous function return type issues
+        - '#Anonymous function never returns array so it can be removed from the return type#'
+        # Allow XML assignment issues in PhpStorm writers
+        - '#\(SimpleXMLElement\|null\) does not accept string#'
+        # Allow FinderCollection return type issues
+        - '#Method .*FinderCollection::inOrEmpty\(\) should return static.*but returns Symfony\\Component\\Finder\\Finder#'
+    reportUnmatchedIgnoredErrors: false
