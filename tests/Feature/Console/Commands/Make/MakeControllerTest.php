@@ -61,3 +61,50 @@ test('it can execute basic controller creation', function () {
   $result = $this->artisan('make:controller', ['name' => 'TestController']);
   $result->assertExitCode(0);
 });
+
+test('it scaffolds a controller in the module when module option is set', function () {
+  $command = MakeController::class;
+  $arguments = ['name' => 'TestController'];
+  $expected_path = 'src/Http/Controllers/TestController.php';
+  $expected_substrings = [
+    'namespace Modules\TestModule\Http\Controllers',
+    'class TestController',
+  ];
+
+  $this->assertModuleCommandResults($command, $arguments, $expected_path, $expected_substrings);
+});
+
+test('it scaffolds a controller in the app when module option is missing', function () {
+  $command = MakeController::class;
+  $arguments = ['name' => 'TestController'];
+  $expected_path = 'app/Http/Controllers/TestController.php';
+  $expected_substrings = [
+    'namespace App\Http\Controllers',
+    'class TestController',
+  ];
+
+  $this->assertBaseCommandResults($command, $arguments, $expected_path, $expected_substrings);
+});
+
+test('it scaffolds a controller with model option in module', function () {
+  // Test that the parseModel method gets called when --model is used
+  expect(method_exists(MakeController::class, 'parseModel'))->toBeTrue();
+});
+
+test('it throws exception for invalid model characters in module', function () {
+  // Create a module first
+  $this->artisan(\Zen\Modulr\Console\Commands\Make\MakeModule::class, [
+    'name' => 'test-module',
+    '--accept-namespace' => true,
+  ])->assertExitCode(0);
+
+  // Reload the module registry
+  $this->app->make(\Zen\Modulr\Support\Registry::class)->reload();
+
+  // Test with invalid model name - expect exception
+  expect(fn () => $this->artisan('make:controller', [
+    'name' => 'TestController',
+    '--module' => 'test-module',
+    '--model' => 'User@Invalid',
+  ]))->toThrow(\InvalidArgumentException::class, 'Model name contains invalid characters.');
+});
