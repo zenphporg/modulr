@@ -1,7 +1,7 @@
 ![Zen Foundation](https://raw.githubusercontent.com/zenphporg/.github/main/img/zenphp.png)
 
 <p align="center">
-<a href="https://github.com/zenphporg/modulr/actions"><img src="https://github.com/zenphporg/modulr/workflows/tests/badge.svg" alt="Build Status"></a>
+<a href="https://github.com/zenphporg/modulr/actions"><img src="https://github.com/zenphporg/modulr/workflows/test/badge.svg" alt="Build Status"></a>
 <a href="https://packagist.org/packages/zenphp/modulr"><img src="https://img.shields.io/packagist/dt/zenphp/modulr" alt="Total Downloads"></a>
 <a href="https://packagist.org/packages/zenphp/modulr"><img src="https://img.shields.io/packagist/v/zenphp/modulr" alt="Latest Stable Version"></a>
 <a href="https://packagist.org/packages/zenphp/modulr"><img src="https://img.shields.io/packagist/l/zenphp/modulr" alt="License"></a>
