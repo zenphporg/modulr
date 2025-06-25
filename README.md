@@ -1,7 +1,8 @@
 ![Zen Foundation](https://raw.githubusercontent.com/zenphporg/.github/main/img/zenphp.png)
 
 <p align="center">
-<a href="https://github.com/zenphporg/modulr/actions"><img src="https://github.com/zenphporg/modulr/workflows/test/badge.svg" alt="Build Status"></a>
+<a href="https://github.com/zenphporg/modulr/blob/main/clover.xml"><img src="https://img.shields.io/badge/dynamic/xml?color=success&label=coverage&query=round%28%2F%2Fcoverage%2Fproject%2Fmetrics%2F%40coveredelements%20div%20%2F%2Fcoverage%2Fproject%2Fmetrics%2F%40elements%20%2A%20100%29&suffix=%25&url=https%3A%2F%2Fraw.githubusercontent.com%2Fzenphporg%2Fmodulr%2Fmain%2Fclover.xml" alt="Coverage"></a>
+<a href="https://github.com/zenphporg/modulr/actions"><img src="https://img.shields.io/github/actions/workflow/status/zenphporg/modulr/maintenance.yml" alt="Build Status"></a>
 <a href="https://packagist.org/packages/zenphp/modulr"><img src="https://img.shields.io/packagist/dt/zenphp/modulr" alt="Total Downloads"></a>
 <a href="https://packagist.org/packages/zenphp/modulr"><img src="https://img.shields.io/packagist/v/zenphp/modulr" alt="Latest Stable Version"></a>
 <a href="https://packagist.org/packages/zenphp/modulr"><img src="https://img.shields.io/packagist/l/zenphp/modulr" alt="License"></a>
@@ -169,3 +170,17 @@ Both filenames and file contents support a number of placeholders. These include
 - `StubMigrationPrefix`
 - `StubFullyQualifiedTestCaseBase`
 - `StubTestCaseBase`
+
+---
+
+## Contributing
+
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
+## Security Vulnerabilities
+
+Please review [our security policy](https://github.com/zenphporg/modulr/security/policy) on how to report security vulnerabilities.
+
+## License
+
+The MIT License (MIT). Please see [License File](LICENSE.md) for more information.

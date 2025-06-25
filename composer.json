@@ -47,6 +47,7 @@
   "scripts": {
     "fix": "vendor/bin/fixr",
     "test": "vendor/bin/pest",
+    "test:coverage": "vendor/bin/pest --coverage",
     "analyze": "phpstan analyze"
   },
   "extra": {
