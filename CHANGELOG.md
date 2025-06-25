@@ -1,5 +1,18 @@
 # Release Notes
 
+## [1.0.10](https://github.com/zenphporg/modulr/compare/v1.0.9...v1.0.10) (2025-06-25)
+
+
+### Bug Fixes
+
+* added new testing suite using pest ([94d792c](https://github.com/zenphporg/modulr/commit/94d792ca8a76d872e2c51a44aa317e16e1bca9f5))
+
+
+### Work in Progress
+
+* change test structure ([0a00dc1](https://github.com/zenphporg/modulr/commit/0a00dc15c081f8724c5452d9ab44bb225fa1c893))
+* improved coverage to 66% ([7cd2e48](https://github.com/zenphporg/modulr/commit/7cd2e4858b7dda869ad02bdd330422e990b1385e))
+
 ## [1.0.9](https://github.com/zenphporg/modulr/compare/v1.0.8...v1.0.9) (2025-06-06)
 
 
