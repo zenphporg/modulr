@@ -30,7 +30,7 @@
     "mockery/mockery": "^1.6.12",
     "zenphp/fixr": "^1.0.3",
     "rector/rector": "^2.0",
-    "pestphp/pest": "^3.8",
+    "pestphp/pest": "^3.8 || ^4.0",
     "orchestra/testbench": "^10.4",
     "larastan/larastan": "^3.0"
   },
