@@ -5,53 +5,44 @@ declare(strict_types=1);
 use Rector\Caching\ValueObject\Storage\FileCacheStorage;
 use Rector\Config\RectorConfig;
 use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
-use Rector\TypeDeclaration\Rector\StmtsAwareInterface\DeclareStrictTypesRector;
+use RectorLaravel\Set\LaravelSetList;
+use RectorLaravel\Set\LaravelSetProvider;
 
 return RectorConfig::configure()
-  ->withPaths([
-    __DIR__.'/src',
-    //__DIR__.'/tests',
+  ->withSetProviders(LaravelSetProvider::class)
+  ->withSets([
+    LaravelSetList::LARAVEL_ARRAYACCESS_TO_METHOD_CALL,
+    LaravelSetList::LARAVEL_ARRAY_STR_FUNCTION_TO_STATIC_CALL,
+    LaravelSetList::LARAVEL_CODE_QUALITY,
+    LaravelSetList::LARAVEL_COLLECTION,
+    LaravelSetList::LARAVEL_CONTAINER_STRING_TO_FULLY_QUALIFIED_NAME,
+    LaravelSetList::LARAVEL_ELOQUENT_MAGIC_METHOD_TO_QUERY_BUILDER,
+    LaravelSetList::LARAVEL_FACADE_ALIASES_TO_FULL_NAMES,
+    LaravelSetList::LARAVEL_FACTORIES,
+    LaravelSetList::LARAVEL_IF_HELPERS,
+    LaravelSetList::LARAVEL_LEGACY_FACTORIES_TO_CLASSES,
   ])
-
-    // Skip directories and files that shouldn't be modified
-  ->withSkip([
-    __DIR__.'/vendor',
-    __DIR__.'/node_modules',
-    __DIR__.'/build',
-    __DIR__.'/dist',
-    // Skip any generated or compiled files
-    '*/stubs/*',
-    '*/stub/*',
-  ])
-
-    // Performance optimizations
-  ->withCache(__DIR__.'/var/cache/rector', FileCacheStorage::class)
-  ->withImportNames(removeUnusedImports: true)
-
-    // PHP 8.3 modernization
-  ->withPhpSets(php83: true)
-
-    // Core rule sets (excluding formatting since handled separately)
-  ->withPreparedSets(
-    deadCode: true,           // Safe dead code removal + docblock cleanup
-    codeQuality: true,        // Code quality improvements
-    typeDeclarations: true,   // Type declarations + typed properties + void returns
-    privatization: true,      // Visibility improvements
-    naming: true,             // Naming conventions
-    earlyReturn: true,        // Early return patterns
-    instanceOf: true          // instanceof optimizations
+  ->withImportNames(
+    removeUnusedImports: true,
   )
-
-    // Specific rules not covered by prepared sets
-  ->withRules([
-    // Strict types declaration
-    DeclareStrictTypesRector::class,
-
-    // PHP 8.3 Override attribute for overridden methods
+  ->withComposerBased(laravel: true)
+  ->withCache(
+    cacheDirectory: '/tmp/rector',
+    cacheClass: FileCacheStorage::class,
+  )
+  ->withPaths([
+    __DIR__.'/config',
+    __DIR__.'/src',
+    __DIR__.'/tests',
+  ])
+  ->withSkip([
     AddOverrideAttributeToOverriddenMethodsRector::class,
   ])
-
-    // Configure specific rules
-  ->withConfiguredRule(AddOverrideAttributeToOverriddenMethodsRector::class, [
-    'allow_override_empty_method' => false,
-  ]);
+  ->withPreparedSets(
+    deadCode: true,
+    codeQuality: true,
+    typeDeclarations: true,
+    privatization: true,
+    earlyReturn: true,
+  )
+  ->withPhpSets(php84: true);

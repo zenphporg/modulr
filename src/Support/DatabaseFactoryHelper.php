@@ -6,6 +6,7 @@ namespace Zen\Modulr\Support;
 
 use Closure;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use ReflectionException;
 use ReflectionProperty;
@@ -27,9 +28,13 @@ class DatabaseFactoryHelper
     $this->unsetProperty(Factory::class, 'factoryNameResolver');
   }
 
+  /**
+   * @return Closure(Factory<Model>):class-string<Model>
+   */
   public function modelNameResolver(): Closure
   {
-    return function (Factory $factory) {
+    // @phpstan-ignore return.type (closure returns class-string at runtime)
+    return function (Factory $factory): string {
       if (($module = $this->registry->moduleForClass($factory::class)) instanceof ConfigStore) {
         return (string) Str::of($factory::class)
           ->replaceFirst($module->qualify($this->namespace()), '')
@@ -39,18 +44,22 @@ class DatabaseFactoryHelper
 
       // For non-module factories, use Laravel's default logic directly
       // This avoids infinite recursion by not calling modelName() again
-      $modelName = Str::of($factory::class)
+      $stringable = Str::of($factory::class)
         ->replaceLast('Factory', '')
         ->replaceLast('Database\\Factories\\', '')
         ->prepend('App\\Models\\');
 
-      return (string) $modelName;
+      return (string) $stringable;
     };
   }
 
+  /**
+   * @return Closure(class-string<Model>):class-string<Factory<Model>>
+   */
   public function factoryNameResolver(): Closure
   {
-    return function ($model_name) {
+    // @phpstan-ignore return.type (closure returns class-string at runtime)
+    return function (string $model_name): string {
       if (($module = $this->registry->moduleForClass($model_name)) instanceof ConfigStore) {
         $model_name = Str::startsWith($model_name, $module->qualify('Models\\'))
             ? Str::after($model_name, $module->qualify('Models\\'))
@@ -64,12 +73,12 @@ class DatabaseFactoryHelper
       $namespace = $this->namespace();
 
       // Handle both App\Models\Foo and App\Foo patterns
-      $factoryName = Str::of($model_name)
+      $stringable = Str::of($model_name)
         ->replaceFirst('App\\Models\\', $namespace)
         ->replaceFirst('App\\', $namespace)
         ->append('Factory');
 
-      return (string) $factoryName;
+      return (string) $stringable;
     };
   }
 
@@ -81,13 +90,17 @@ class DatabaseFactoryHelper
   public function namespace(): string
   {
     // Don't cache the namespace since it can change via Factory::useNamespace()
-    return $this->getProperty(Factory::class, 'namespace');
+    $value = $this->getProperty(Factory::class, 'namespace');
+
+    return is_string($value) ? $value : '';
   }
 
   /**
+   * @param  class-string  $target
+   *
    * @throws ReflectionException
    */
-  protected function getProperty($target, $property): mixed
+  protected function getProperty(string $target, string $property): mixed
   {
     $reflectionProperty = new ReflectionProperty($target, $property);
 
@@ -95,9 +108,11 @@ class DatabaseFactoryHelper
   }
 
   /**
+   * @param  class-string  $target
+   *
    * @throws ReflectionException
    */
-  protected function unsetProperty($target, $property): void
+  protected function unsetProperty(string $target, string $property): void
   {
     $reflectionProperty = new ReflectionProperty($target, $property);
 

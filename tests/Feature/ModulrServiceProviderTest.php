@@ -1,12 +1,14 @@
 <?php
 
 // TestCase applied via Pest.php
+use Database\Factories\WidgetFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Zen\Modulr\Support\Registry;
+use Zen\Modulr\Tests\Feature\Concerns\WritesToAppFilesystem;
 
-uses(\Zen\Modulr\Tests\Feature\Concerns\WritesToAppFilesystem::class);
+uses(WritesToAppFilesystem::class);
 
-test('registry is bound as a singleton', function () {
+test('registry is bound as a singleton', function (): void {
   $registry = $this->app->make(Registry::class);
   $registry2 = $this->app->make(Registry::class);
 
@@ -14,7 +16,7 @@ test('registry is bound as a singleton', function () {
   expect($registry2)->toBe($registry);
 });
 
-test('model factory classes are resolved correctly', function () {
+test('model factory classes are resolved correctly', function (): void {
   $module = $this->makeModule();
 
   expect(Factory::resolveFactoryName($module->qualify('Models\\Foo')))->toEqual($module->qualify('Database\\Factories\\FooFactory'));
@@ -34,7 +36,7 @@ test('model factory classes are resolved correctly', function () {
   expect(Factory::resolveFactoryName('App\\Foo\\Bar'))->toEqual('Database\\Factories\\Foo\\BarFactory');
 });
 
-test('model factory classes are resolved correctly with custom namespace', function () {
+test('model factory classes are resolved correctly with custom namespace', function (): void {
   Factory::useNamespace('Something\\');
 
   $module = $this->makeModule();
@@ -58,7 +60,7 @@ test('model factory classes are resolved correctly with custom namespace', funct
   Factory::useNamespace('Database\\Factories\\');
 });
 
-test('model classes are resolved correctly for factories with custom namespace', function () {
+test('model classes are resolved correctly for factories with custom namespace', function (): void {
   $module = $this->makeModule();
 
   // We'll create a factory and instantiate it
@@ -73,12 +75,12 @@ test('model classes are resolved correctly for factories with custom namespace',
   // We'll also confirm that non-app factories are unaffected
   $this->artisan('make:model', ['name' => 'Widget', '--factory' => true]);
   require database_path('factories/WidgetFactory.php');
-  $factory = new \Database\Factories\WidgetFactory;
+  $factory = new WidgetFactory;
 
   expect($factory->modelName())->toEqual('App\\Models\\Widget');
 });
 
-test('it loads translations from module', function () {
+test('it loads translations from module', function (): void {
   $module = $this->makeModule();
 
   $this->filesystem()->ensureDirectoryExists($module->path('resources/lang'));

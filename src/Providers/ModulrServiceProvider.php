@@ -8,10 +8,14 @@ use Closure;
 use Illuminate\Console\Application as Artisan;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Auth\Access\Gate;
+use Illuminate\Contracts\Config\Repository;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Translation\Translator as TranslatorContract;
 use Illuminate\Database\Console\Migrations\MigrateMakeCommand;
 use Illuminate\Database\Eloquent\Factories\Factory as EloquentFactory;
+use Illuminate\Database\Migrations\MigrationCreator;
 use Illuminate\Database\Migrations\Migrator;
+use Illuminate\Support\Composer;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Translation\Translator;
@@ -26,6 +30,7 @@ use Zen\Modulr\Console\Commands\InstallCommand;
 use Zen\Modulr\Console\Commands\ListCommand;
 use Zen\Modulr\Console\Commands\Make\MakeMigration;
 use Zen\Modulr\Console\Commands\Make\MakeModule;
+use Zen\Modulr\Console\Commands\RemoveCommand;
 use Zen\Modulr\Console\Commands\SyncCommand;
 use Zen\Modulr\Support\AutoDiscoveryHelper;
 use Zen\Modulr\Support\DatabaseFactoryHelper;
@@ -41,7 +46,7 @@ class ModulrServiceProvider extends ServiceProvider
 
   protected ?string $modules_path = null;
 
-  public function __construct($app)
+  public function __construct(Application $app)
   {
     parent::__construct($app);
   }
@@ -61,7 +66,14 @@ class ModulrServiceProvider extends ServiceProvider
 
     $this->app->singleton(AutoDiscoveryHelper::class);
 
-    $this->app->singleton(MakeMigration::class, fn ($app): MigrateMakeCommand => new MigrateMakeCommand($app['migration.creator'], $app['composer']));
+    $this->app->singleton(MakeMigration::class, function (\Illuminate\Foundation\Application $app): MigrateMakeCommand {
+      /** @var MigrationCreator $creator */
+      $creator = $app->make('migration.creator');
+      /** @var Composer $composer */
+      $composer = $app->make(Composer::class);
+
+      return new MigrateMakeCommand($creator, $composer);
+    });
 
     $this->registerEloquentFactories();
 
@@ -72,7 +84,7 @@ class ModulrServiceProvider extends ServiceProvider
     $this->registerLazily(Gate::class, [$this, 'registerPolicies']);
 
     // Look for and register all our commands in the CLI context
-    Artisan::starting(Closure::fromCallable([$this, 'registerCommands']));
+    Artisan::starting($this->registerCommands(...));
   }
 
   public function boot(): void
@@ -111,6 +123,7 @@ class ModulrServiceProvider extends ServiceProvider
 
     $this->commands([
       MakeModule::class,
+      RemoveCommand::class,
       CacheCommand::class,
       ClearCommand::class,
       InstallCommand::class,
@@ -254,16 +267,17 @@ class ModulrServiceProvider extends ServiceProvider
   protected function getModulesBasePath(): string
   {
     if ($this->modules_path === null) {
-      $directory_name = $this->app->make('config')->get('modulr.modules_directory', 'modules');
+      /** @var string $directory_name */
+      $directory_name = $this->app->make(Repository::class)->get('modulr.modules_directory', 'modules');
       $this->modules_path = str_replace('\\', '/', $this->app->basePath($directory_name));
     }
 
     return $this->modules_path;
   }
 
-  protected function isInstantiableCommand($command): bool
+  protected function isInstantiableCommand(string $command): bool
   {
     return is_subclass_of($command, Command::class)
-        && ! (new ReflectionClass($command))->isAbstract();
+        && ! new ReflectionClass($command)->isAbstract();
   }
 }

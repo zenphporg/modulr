@@ -17,22 +17,24 @@ class MakeController extends ControllerMakeCommand
   use ConfiguresCommands;
 
   /**
+   * @param  string  $model
+   *
    * @throws BindingResolutionException
    */
   #[Override]
-  protected function parseModel($model): string
+  protected function parseModel($model): string // @pest-ignore-type
   {
     if (! ($module = $this->module()) instanceof ConfigStore) {
       return parent::parseModel($model);
     }
 
-    if (preg_match('([^A-Za-z0-9_/\\\\])', $model)) {
-      throw new InvalidArgumentException('Model name contains invalid characters.');
-    }
+    throw_if(preg_match('([^A-Za-z0-9_/\\\\])', $model), InvalidArgumentException::class, 'Model name contains invalid characters.');
 
     $model = trim(str_replace('/', '\\', $model), '\\');
 
-    if (! Str::startsWith($model, $namespace = $module->namespaces->first())) {
+    /** @var string $namespace */
+    $namespace = $module->namespaces->first() ?? '';
+    if (! Str::startsWith($model, $namespace)) {
       return $namespace.$model;
     }
 

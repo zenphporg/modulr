@@ -1,13 +1,16 @@
 <?php
 
 // TestCase applied via Pest.php
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Zen\Modulr\Console\Commands\Make\MakeFactory;
+use Zen\Modulr\Tests\Feature\Concerns\TestsMakeCommands;
+use Zen\Modulr\Tests\Feature\Concerns\WritesToAppFilesystem;
 
-uses(\Zen\Modulr\Tests\Feature\Concerns\TestsMakeCommands::class);
+uses(TestsMakeCommands::class);
 
-uses(\Zen\Modulr\Tests\Feature\Concerns\WritesToAppFilesystem::class);
+uses(WritesToAppFilesystem::class);
 
-test('it overrides the default command', function () {
+test('it overrides the default command', function (): void {
   $this->requiresLaravelVersion('11.0');
 
   $this->artisan('make:factory', ['--help' => true])
@@ -15,7 +18,7 @@ test('it overrides the default command', function () {
     ->assertExitCode(0);
 });
 
-test('it scaffolds a factory in the module when module option is set', function () {
+test('it scaffolds a factory in the module when module option is set', function (): void {
   $command = MakeFactory::class;
   $arguments = ['name' => 'TestFactory'];
   $expected_path = 'database/factories/TestFactory.php';
@@ -28,13 +31,13 @@ test('it scaffolds a factory in the module when module option is set', function 
   $this->assertModuleCommandResults($command, $arguments, $expected_path, $expected_substrings);
 });
 
-test('it scaffolds a factory in the app when module option is missing', function () {
+test('it scaffolds a factory in the app when module option is missing', function (): void {
   $command = MakeFactory::class;
   $arguments = ['name' => 'TestFactory'];
   $expected_path = 'database/factories/TestFactory.php';
 
   $expected_substrings = [
-    'Illuminate\Database\Eloquent\Factories\Factory',
+    Factory::class,
     'namespace Database\Factories;',
   ];
 

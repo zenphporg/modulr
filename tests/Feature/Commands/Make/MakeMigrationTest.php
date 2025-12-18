@@ -1,26 +1,29 @@
 <?php
 
 // TestCase applied via Pest.php
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Migrations\MigrationCreator;
+use Illuminate\Filesystem\Filesystem;
 use Zen\Modulr\Console\Commands\Make\MakeMigration;
+use Zen\Modulr\Tests\Feature\Concerns\TestsMakeCommands;
+use Zen\Modulr\Tests\Feature\Concerns\WritesToAppFilesystem;
 
-uses(\Zen\Modulr\Tests\Feature\Concerns\TestsMakeCommands::class);
+uses(TestsMakeCommands::class);
 
-uses(\Zen\Modulr\Tests\Feature\Concerns\WritesToAppFilesystem::class);
+uses(WritesToAppFilesystem::class);
 
-beforeEach(function () {
-  $this->app->singleton('migration.creator', function ($app) {
-    return new class($app['files'], $app->basePath('stubs')) extends MigrationCreator
+beforeEach(function (): void {
+  $this->app->singleton('migration.creator', fn (Application $app): MigrationCreator => new class($app->make(Filesystem::class), $app->basePath('stubs')) extends MigrationCreator
+  {
+    public function getDatePrefix(): string
     {
-      public function getDatePrefix()
-      {
-        return 'test';
-      }
-    };
+      return 'test';
+    }
   });
 });
 
-test('it overrides the default command', function () {
+test('it overrides the default command', function (): void {
   $this->requiresLaravelVersion('11.0');
 
   $this->artisan('make:migration', ['--help' => true])
@@ -28,12 +31,12 @@ test('it overrides the default command', function () {
     ->assertExitCode(0);
 });
 
-test('it scaffolds a migration in the module when module option is set', function () {
+test('it scaffolds a migration in the module when module option is set', function (): void {
   $command = MakeMigration::class;
   $arguments = ['name' => 'test_migration'];
   $expected_path = 'database/migrations/test_test_migration.php';
   $expected_substrings = [
-    'Illuminate\Database\Migrations\Migration',
+    Migration::class,
     'extends Migration',
     'function up',
   ];
@@ -41,12 +44,12 @@ test('it scaffolds a migration in the module when module option is set', functio
   $this->assertModuleCommandResults($command, $arguments, $expected_path, $expected_substrings);
 });
 
-test('it scaffolds a migration in the app when module option is missing', function () {
+test('it scaffolds a migration in the app when module option is missing', function (): void {
   $command = MakeMigration::class;
   $arguments = ['name' => 'test_migration'];
   $expected_path = 'database/migrations/test_test_migration.php';
   $expected_substrings = [
-    'Illuminate\Database\Migrations\Migration',
+    Migration::class,
     'extends Migration',
     'function up',
   ];

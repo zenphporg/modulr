@@ -20,7 +20,7 @@ class MakeComponent extends ComponentMakeCommand
    * @throws BindingResolutionException
    */
   #[Override]
-  protected function viewPath($path = ''): string
+  protected function viewPath($path = ''): string // @pest-ignore-type
   {
     if (($module = $this->module()) instanceof ConfigStore) {
       return $module->path("resources/views/$path");

@@ -18,13 +18,17 @@ class MakeTest extends TestMakeCommand
   }
 
   /**
+   * @param  string  $name
+   *
    * @throws BindingResolutionException
    */
   #[Override]
-  protected function getPath($name): array|string
+  protected function getPath($name): string // @pest-ignore-type
   {
     if (($module = $this->module()) instanceof ConfigStore) {
-      $name = '\\'.Str::replaceFirst($module->namespaces->first(), '', $name);
+      /** @var string $namespace */
+      $namespace = $module->namespaces->first() ?? '';
+      $name = '\\'.Str::replaceFirst($namespace, '', $name);
 
       return $this->getModularPath($name);
     }

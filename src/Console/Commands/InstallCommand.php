@@ -56,12 +56,21 @@ class InstallCommand extends Command
    */
   public function handle(): int
   {
-    $this->package_name = $this->argument('package');
+    /** @var string $packageName */
+    $packageName = $this->argument('package');
+    $this->package_name = $packageName;
 
-    $this->module_name = $this->option('name') ?: basename($this->package_name);
+    /** @var string|true $nameOption */
+    $nameOption = $this->option('name');
+    $this->module_name = is_string($nameOption) ? $nameOption : basename($this->package_name);
 
-    $this->module_namespace = config('modulr.modules_namespace', 'Modules');
-    $this->composer_namespace = config('modulr.modules_vendor') ?? Str::kebab($this->module_namespace);
+    /** @var string $moduleNamespace */
+    $moduleNamespace = config('modulr.modules_namespace', 'Modules');
+    $this->module_namespace = $moduleNamespace;
+
+    /** @var string|null $modulesVendor */
+    $modulesVendor = config('modulr.modules_vendor');
+    $this->composer_namespace = $modulesVendor ?? Str::kebab($this->module_namespace);
     $this->composer_name = "$this->composer_namespace/$this->module_name";
     $this->base_path = $this->module_registry->getModulesPath().'/'.$this->module_name;
 
@@ -194,6 +203,7 @@ class InstallCommand extends Command
     $file = $this->base_path.'/'.'composer.json';
 
     $jsonFile = new JsonFile($file);
+    /** @var array<string, mixed> $definition */
     $definition = $jsonFile->read();
 
     $keys = ['name', 'type', 'version', 'license', 'keywords', 'support', 'authors'];
@@ -240,9 +250,13 @@ class InstallCommand extends Command
     $this->title('Updating application composer.json file');
 
     $original_working_dir = getcwd();
+    if ($original_working_dir === false) {
+      $original_working_dir = $this->laravel->basePath();
+    }
     chdir($this->laravel->basePath());
 
     $jsonFile = new JsonFile(Factory::getComposerFile());
+    /** @var array<string, mixed> $definition */
     $definition = $jsonFile->read();
 
     if (! isset($definition['repositories'])) {
@@ -253,9 +267,11 @@ class InstallCommand extends Command
       $definition['require'] = [];
     }
 
+    /** @var string $modulesDirectory */
+    $modulesDirectory = config('modulr.modules_directory', 'modules');
     $module_config = [
       'type' => 'path',
-      'url' => str_replace('\\', '/', config('modulr.modules_directory', 'modules')).'/*',
+      'url' => str_replace('\\', '/', $modulesDirectory).'/*',
       'options' => [
         'symlink' => true,
       ],
@@ -263,34 +279,41 @@ class InstallCommand extends Command
 
     $has_changes = false;
 
-    $repository_already_exists = collect($definition['repositories'])
+    /** @var array<int|string, array{type: string, url: string, options?: array<string, mixed>}> $repositories */
+    $repositories = $definition['repositories'];
+    $repository_already_exists = collect($repositories)
       ->contains(fn (array $repository): bool => $repository['url'] === $module_config['url']);
 
     if ($repository_already_exists === false) {
       $this->line(" - Adding path repository for <info>{$module_config['url']}</info>");
       $has_changes = true;
 
-      if (Arr::isAssoc($definition['repositories'])) {
-        $definition['repositories'][$this->module_name] = $module_config;
+      if (Arr::isAssoc($repositories)) {
+        $repositories[$this->module_name] = $module_config;
       } else {
-        $definition['repositories'][] = $module_config;
+        $repositories[] = $module_config;
       }
+      $definition['repositories'] = $repositories;
     }
 
-    if (! isset($definition['require'][$this->composer_name])) {
+    /** @var array<string, string> $require */
+    $require = $definition['require'];
+    if (! isset($require[$this->composer_name])) {
       $this->line(" - Adding require statement for <info>$this->composer_name:*</info>");
       $has_changes = true;
 
-      $definition['require']["$this->composer_namespace/$this->module_name"] = '^1.0';
-      $definition['require'] = $this->sortComposerPackages($definition['require']);
+      $require["$this->composer_namespace/$this->module_name"] = '^1.0';
+      $definition['require'] = $this->sortComposerPackages($require);
     }
 
-    if (isset($definition['require'][$this->package_name])) {
+    /** @var array<string, string> $require */
+    $require = $definition['require'];
+    if (isset($require[$this->package_name])) {
       $this->line(" - Removing require statement for <info>$this->package_name</info>");
       $has_changes = true;
 
-      unset($definition['require'][$this->package_name]);
-      $definition['require'] = $this->sortComposerPackages($definition['require']);
+      unset($require[$this->package_name]);
+      $definition['require'] = $this->sortComposerPackages($require);
     }
 
     if ($has_changes) {
@@ -307,10 +330,13 @@ class InstallCommand extends Command
 
   /**
    * Sort composer packages.
+   *
+   * @param  array<string, string>  $packages
+   * @return array<string, string>
    */
   protected function sortComposerPackages(array $packages): array
   {
-    $prefix = (fn ($requirement): array|string|null => preg_replace(
+    $prefix = (fn (string $requirement): ?string => preg_replace(
       [
         '/^php$/',
         '/^hhvm-/',
@@ -327,10 +353,10 @@ class InstallCommand extends Command
         '4-$0',
         '5-$0',
       ],
-      (string) $requirement
+      $requirement
     ));
 
-    uksort($packages, fn ($a, $b): int => strnatcmp($prefix($a), $prefix($b)));
+    uksort($packages, fn (string $a, string $b): int => strnatcmp((string) $prefix($a), (string) $prefix($b)));
 
     return $packages;
   }
@@ -360,13 +386,17 @@ class InstallCommand extends Command
    *
    * @param  int  $count
    */
-  public function newLine($count = 1): void
+  public function newLine($count = 1): static // @pest-ignore-type
   {
     $this->getOutput()->newLine($count);
+
+    return $this;
   }
 
   /**
    * Create a process to return to the various methods and for testing.
+   *
+   * @param  array<int, string>  $command
    */
   public function createProcess(array $command): Process
   {

@@ -4,36 +4,36 @@ use Zen\Modulr\Support\ConfigStore;
 use Zen\Modulr\Support\DatabaseFactoryHelper;
 use Zen\Modulr\Support\Registry;
 
-beforeEach(function () {
+beforeEach(function (): void {
   $this->registry = new Registry('/path/to/modules', '');
   $this->helper = new DatabaseFactoryHelper($this->registry);
 });
 
-test('it creates model name resolver', function () {
+test('it creates model name resolver', function (): void {
   $resolver = $this->helper->modelNameResolver();
 
   expect($resolver)->toBeInstanceOf(Closure::class);
 });
 
-test('it creates factory name resolver', function () {
+test('it creates factory name resolver', function (): void {
   $resolver = $this->helper->factoryNameResolver();
 
   expect($resolver)->toBeInstanceOf(Closure::class);
 });
 
-test('it resolves model names for module factories', function () {
+test('it resolves model names for module factories', function (): void {
   // Test that the resolver is callable
   $resolver = $this->helper->modelNameResolver();
   expect($resolver)->toBeInstanceOf(Closure::class);
 });
 
-test('it resolves model names for app factories', function () {
+test('it resolves model names for app factories', function (): void {
   // Test that the resolver works with the registry
   $resolver = $this->helper->modelNameResolver();
   expect($resolver)->toBeInstanceOf(Closure::class);
 });
 
-test('it resolves factory names for module models', function () {
+test('it resolves factory names for module models', function (): void {
   // Create a mock module
   $namespaces = collect(['/path/to/modules/test-module/src' => 'Modules\\TestModule\\']);
   $module = new ConfigStore('test-module', '/path/to/modules/test-module', $namespaces);
@@ -52,7 +52,7 @@ test('it resolves factory names for module models', function () {
   expect($factoryName)->toBe('Modules\\TestModule\\Database\\Factories\\UserFactory');
 });
 
-test('it resolves factory names for app models', function () {
+test('it resolves factory names for app models', function (): void {
   // Mock the registry to return null (no module found)
   $registry = Mockery::mock(Registry::class);
   $registry->shouldReceive('moduleForClass')
@@ -67,13 +67,13 @@ test('it resolves factory names for app models', function () {
   expect($factoryName)->toBe('Database\\Factories\\UserFactory');
 });
 
-test('it gets factory namespace via reflection', function () {
+test('it gets factory namespace via reflection', function (): void {
   $namespace = $this->helper->namespace();
 
   expect($namespace)->toBeString();
   expect($namespace)->toBe('Database\\Factories\\');
 });
 
-test('it can reset resolvers', function () {
+test('it can reset resolvers', function (): void {
   expect(method_exists($this->helper, 'resetResolvers'))->toBeTrue();
 });

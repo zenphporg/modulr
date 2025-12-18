@@ -7,6 +7,8 @@ namespace Zen\Modulr\Providers;
 use Illuminate\Console\Application as Artisan;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Console\Migrations\MigrateMakeCommand as OriginalMakeMigrationCommand;
+use Illuminate\Database\Migrations\MigrationCreator;
+use Illuminate\Support\Composer;
 use Illuminate\Support\ServiceProvider;
 use Override;
 use Zen\Modulr\Console\Commands\Database\SeedCommand;
@@ -79,26 +81,37 @@ class CommandsServiceProvider extends ServiceProvider
     });
   }
 
-  /**
-   * @return void
-   */
-  protected function registerMakeCommandOverrides()
+  protected function registerMakeCommandOverrides(): void
   {
     foreach ($this->overrides as $alias => $class_name) {
+      $parentClass = get_parent_class($class_name);
       $this->app->singleton($alias, $class_name);
-      $this->app->singleton(get_parent_class($class_name), $class_name);
+      if ($parentClass !== false) {
+        $this->app->singleton($parentClass, $class_name);
+      }
     }
   }
 
-  /**
-   * @return void
-   */
-  protected function registerMigrationCommandOverrides()
+  protected function registerMigrationCommandOverrides(): void
   {
     // Laravel 8
-    $this->app->singleton('command.migrate.make', fn (Application $application): MakeMigration => new MakeMigration($application['migration.creator'], $application['composer']));
+    $this->app->singleton('command.migrate.make', function (Application $application): MakeMigration {
+      /** @var MigrationCreator $creator */
+      $creator = $application->make('migration.creator');
+      /** @var Composer $composer */
+      $composer = $application->make(Composer::class);
+
+      return new MakeMigration($creator, $composer);
+    });
 
     // Laravel 9
-    $this->app->singleton(OriginalMakeMigrationCommand::class, fn (Application $application): MakeMigration => new MakeMigration($application['migration.creator'], $application['composer']));
+    $this->app->singleton(function (Application $application): OriginalMakeMigrationCommand {
+      /** @var MigrationCreator $creator */
+      $creator = $application->make('migration.creator');
+      /** @var Composer $composer */
+      $composer = $application->make(Composer::class);
+
+      return new MakeMigration($creator, $composer);
+    });
   }
 }

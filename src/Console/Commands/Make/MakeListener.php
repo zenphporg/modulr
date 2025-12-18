@@ -16,16 +16,17 @@ class MakeListener extends ListenerMakeCommand
   use ConfiguresCommands;
 
   /**
-   * @return array|string|string[]
+   * @param  string  $name
    *
    * @throws FileNotFoundException
    */
   #[Override]
-  protected function buildClass($name)
+  protected function buildClass($name): string // @pest-ignore-type
   {
+    /** @var string|null $event */
     $event = $this->option('event');
 
-    if (Modulr::moduleForClass($name) && $event) {
+    if (Modulr::moduleForClass($name) && $event !== null && $event !== '') {
       $stub = str_replace(
         ['DummyEvent', '{{ event }}'],
         class_basename($event),

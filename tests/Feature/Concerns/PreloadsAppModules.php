@@ -24,7 +24,7 @@ trait PreloadsAppModules
   public function prepareModuleAutoloader(): void
   {
     if (! static::$autoloader_registered) {
-      spl_autoload_register(function ($fqcn) {
+      spl_autoload_register(function ($fqcn): void {
         if (str_starts_with($fqcn, 'Modules\\TestModule\\')) {
           $path = str_replace(
             ['Modules\\TestModule\\', '\\'],

@@ -3,10 +3,11 @@
 // TestCase applied via Pest.php
 use Zen\Modulr\Support\ConfigStore;
 use Zen\Modulr\Support\Registry;
+use Zen\Modulr\Tests\Feature\Concerns\WritesToAppFilesystem;
 
-uses(\Zen\Modulr\Tests\Feature\Concerns\WritesToAppFilesystem::class);
+uses(WritesToAppFilesystem::class);
 
-test('it resolves modules', function () {
+test('it resolves modules', function (): void {
   $this->makeModule('test-module');
   $this->makeModule('test-module-two');
 

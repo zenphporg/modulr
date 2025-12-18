@@ -2,12 +2,12 @@
 
 use Zen\Modulr\Support\ConfigStore;
 
-test('it can be created from composer file', function () {
+test('it can be created from composer file', function (): void {
   // Test that the static method exists
   expect(method_exists(ConfigStore::class, 'fromComposerFile'))->toBeTrue();
 });
 
-test('it can be constructed manually', function () {
+test('it can be constructed manually', function (): void {
   $namespaces = collect([
     '/path/to/src' => 'Modules\\TestModule\\',
     '/path/to/tests' => 'Modules\\TestModule\\Tests\\',
@@ -20,7 +20,7 @@ test('it can be constructed manually', function () {
   expect($configStore->namespaces)->toBe($namespaces);
 });
 
-test('it returns correct paths', function () {
+test('it returns correct paths', function (): void {
   $configStore = new ConfigStore('test-module', '/path/to/module');
 
   expect($configStore->path())->toBe('/path/to/module');
@@ -28,7 +28,7 @@ test('it returns correct paths', function () {
   expect($configStore->path('src/Models'))->toBe('/path/to/module/src/Models');
 });
 
-test('it returns first namespace', function () {
+test('it returns first namespace', function (): void {
   $namespaces = collect([
     '/path/to/src' => 'Modules\\TestModule\\',
     '/path/to/tests' => 'Modules\\TestModule\\Tests\\',
@@ -39,7 +39,7 @@ test('it returns first namespace', function () {
   expect($configStore->namespace())->toBe('Modules\\TestModule\\');
 });
 
-test('it qualifies class names', function () {
+test('it qualifies class names', function (): void {
   $namespaces = collect([
     '/path/to/src' => 'Modules\\TestModule\\',
   ]);
@@ -50,7 +50,7 @@ test('it qualifies class names', function () {
   expect($configStore->qualify('\\Models\\User'))->toBe('Modules\\TestModule\\Models\\User');
 });
 
-test('it converts path to fully qualified class name', function () {
+test('it converts path to fully qualified class name', function (): void {
   $namespaces = collect([
     '/path/to/module/src' => 'Modules\\TestModule\\',
     '/path/to/module/tests' => 'Modules\\TestModule\\Tests\\',
@@ -65,7 +65,7 @@ test('it converts path to fully qualified class name', function () {
     ->toBe('Modules\\TestModule\\Tests\\Feature\\UserTest');
 });
 
-test('it handles windows paths in path to class name conversion', function () {
+test('it handles windows paths in path to class name conversion', function (): void {
   $namespaces = collect([
     '/path/to/module/src' => 'Modules\\TestModule\\',
   ]);
@@ -76,18 +76,18 @@ test('it handles windows paths in path to class name conversion', function () {
     ->toBe('Modules\\TestModule\\Models\\User');
 });
 
-test('it throws exception for invalid path', function () {
+test('it throws exception for invalid path', function (): void {
   $namespaces = collect([
     '/path/to/module/src' => 'Modules\\TestModule\\',
   ]);
 
   $configStore = new ConfigStore('test-module', '/path/to/module', $namespaces);
 
-  expect(fn () => $configStore->pathToFullyQualifiedClassName('/invalid/path/User.php'))
+  expect(fn (): string => $configStore->pathToFullyQualifiedClassName('/invalid/path/User.php'))
     ->toThrow(RuntimeException::class, "Unable to infer qualified class name for '/invalid/path/User.php'");
 });
 
-test('it converts to array', function () {
+test('it converts to array', function (): void {
   $namespaces = collect([
     '/path/to/src' => 'Modules\\TestModule\\',
   ]);

@@ -18,12 +18,12 @@ class MakeSeeder extends SeederMakeCommand
   }
 
   /**
-   * @return array|string
+   * @param  string  $name
    *
    * @throws BindingResolutionException
    */
   #[Override]
-  protected function getPath($name)
+  protected function getPath($name): string // @pest-ignore-type
   {
     if (($module = $this->module()) instanceof ConfigStore) {
       $name = Str::replaceFirst($module->qualify('Database\\Seeders\\'), '', $name);
@@ -35,12 +35,13 @@ class MakeSeeder extends SeederMakeCommand
   }
 
   /**
-   * @return \Zen\Modulr\Console\Commands\Make\MakeSeeder
+   * @param  string  $stub
+   * @param  string  $name
    *
    * @throws BindingResolutionException
    */
   #[Override]
-  protected function replaceNamespace(&$stub, $name)
+  protected function replaceNamespace(&$stub, $name): static // @pest-ignore-type
   {
     if (($module = $this->module()) instanceof ConfigStore && version_compare($this->getLaravel()->version(), '9.6.0', '<')) {
       $namespace = $module->qualify('Database\Seeders');
@@ -51,12 +52,10 @@ class MakeSeeder extends SeederMakeCommand
   }
 
   /**
-   * @return string
-   *
    * @throws BindingResolutionException
    */
   #[Override]
-  protected function rootNamespace()
+  protected function rootNamespace(): string
   {
     if (($module = $this->module()) instanceof ConfigStore && version_compare($this->getLaravel()->version(), '9.6.0', '>=')) {
       return $module->qualify('Database\Seeders');

@@ -11,6 +11,7 @@ use Zen\Modulr\Exceptions\CannotFindModuleForPathException;
 
 class Registry
 {
+  /** @var Collection<string, ConfigStore>|null */
   protected ?Collection $modules = null;
 
   public function __construct(
@@ -66,11 +67,17 @@ class Registry
     });
   }
 
+  /**
+   * @return Collection<string, ConfigStore>
+   */
   public function modules(): Collection
   {
     return $this->modules ??= $this->loadModules();
   }
 
+  /**
+   * @return Collection<string, ConfigStore>
+   */
   public function reload(): Collection
   {
     $this->modules = null;
@@ -78,31 +85,48 @@ class Registry
     return $this->loadModules();
   }
 
+  /**
+   * @return Collection<string, ConfigStore>
+   */
   protected function loadModules(): Collection
   {
     if (file_exists($this->cache_path)) {
-      return Collection::make(require $this->cache_path)
-        ->mapWithKeys(function (array $cached) {
-          $config = new ConfigStore($cached['name'], $cached['base_path'], new Collection($cached['namespaces']));
+      /** @var array<int, array{name: string, base_path: string, namespaces: array<string, string>}> $cached */
+      $cached = require $this->cache_path;
+
+      /** @var Collection<string, ConfigStore> $result */
+      $result = Collection::make($cached)
+        ->mapWithKeys(function (array $cached): array {
+          /** @var Collection<string, string> $namespaces */
+          $namespaces = new Collection($cached['namespaces']);
+          $config = new ConfigStore($cached['name'], $cached['base_path'], $namespaces);
 
           return [$config->name => $config];
         });
+
+      return $result;
     }
 
     if (! is_dir($this->modules_path)) {
       return new Collection;
     }
 
-    return FinderCollection::forFiles()
-      ->depth('== 1')
-      ->name('composer.json')
-      ->in($this->modules_path)
-      ->collect()
-      ->mapWithKeys(function (SplFileInfo $path) {
-        $configStore = ConfigStore::fromComposerFile($path);
+    /** @var Collection<string, ConfigStore> $result */
+    $result = new Collection(
+      FinderCollection::forFiles()
+        ->depth('== 1')
+        ->name('composer.json')
+        ->in($this->modules_path)
+        ->collect()
+        ->mapWithKeys(function (SplFileInfo $path): array {
+          $configStore = ConfigStore::fromComposerFile($path);
 
-        return [$configStore->name => $configStore];
-      });
+          return [$configStore->name => $configStore];
+        })
+        ->all()
+    );
+
+    return $result;
   }
 
   protected function extractModuleNameFromPath(string $path): string
@@ -114,8 +138,14 @@ class Registry
     // in the same directory, but have different prefixes. This helps resolve that.
     if (Str::startsWith($path, $this->modules_path)) {
       $path = trim(Str::after($path, $this->modules_path), '/');
-    } elseif (Str::startsWith($path, $modules_real_path = str_replace('\\', '/', realpath($this->modules_path)))) {
-      $path = trim(Str::after($path, $modules_real_path), '/');
+    } else {
+      $realPath = realpath($this->modules_path);
+      if ($realPath !== false) {
+        $modules_real_path = str_replace('\\', '/', $realPath);
+        if (Str::startsWith($path, $modules_real_path)) {
+          $path = trim(Str::after($path, $modules_real_path), '/');
+        }
+      }
     }
 
     return explode('/', $path)[0];

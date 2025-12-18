@@ -3,12 +3,12 @@
 use Zen\Modulr\Support\DiscoverEvents;
 use Zen\Modulr\Support\Facades\Modulr;
 
-test('it extends laravel discover events', function () {
+test('it extends laravel discover events', function (): void {
   $reflection = new ReflectionClass(DiscoverEvents::class);
   expect($reflection->getParentClass()->getName())->toBe(\Illuminate\Foundation\Events\DiscoverEvents::class);
 });
 
-test('it has class from file method', function () {
+test('it has class from file method', function (): void {
   $reflection = new ReflectionClass(DiscoverEvents::class);
   expect($reflection->hasMethod('classFromFile'))->toBeTrue();
 
@@ -17,7 +17,7 @@ test('it has class from file method', function () {
   expect($method->isProtected())->toBeTrue();
 });
 
-test('it can discover events within directories', function () {
+test('it can discover events within directories', function (): void {
   // Create a temporary directory structure
   $tempDir = sys_get_temp_dir().'/modulr_test_'.uniqid();
   mkdir($tempDir, 0777, true);
@@ -36,7 +36,7 @@ test('it can discover events within directories', function () {
   }
 });
 
-test('it calls parent class from file when no module found', function () {
+test('it calls parent class from file when no module found', function (): void {
   // Create a temporary file
   $tempDir = sys_get_temp_dir().'/modulr_test_'.uniqid();
   mkdir($tempDir, 0777, true);
@@ -52,7 +52,6 @@ test('it calls parent class from file when no module found', function () {
     $file = new SplFileInfo($eventFile);
     $reflection = new ReflectionClass(DiscoverEvents::class);
     $method = $reflection->getMethod('classFromFile');
-    $method->setAccessible(true);
 
     $result = $method->invoke(null, $file, $tempDir);
     expect($result)->toBeString();

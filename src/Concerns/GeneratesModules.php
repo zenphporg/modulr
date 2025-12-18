@@ -17,14 +17,17 @@ trait GeneratesModules
    */
   protected function module(): ?ConfigStore
   {
-    if ($name = $this->option('module')) {
+    $optionValue = $this->option('module');
+
+    if (is_string($optionValue) && $optionValue !== '') {
+      /** @var Registry $registry */
       $registry = $this->getLaravel()->make(Registry::class);
 
-      if ($module = $registry->module($name)) {
+      if ($module = $registry->module($optionValue)) {
         return $module;
       }
 
-      throw new InvalidOptionException(sprintf('The "%s" module does not exist.', $name));
+      throw new InvalidOptionException(sprintf('The "%s" module does not exist.', $optionValue));
     }
 
     return null;

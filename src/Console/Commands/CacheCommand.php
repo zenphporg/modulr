@@ -29,7 +29,7 @@ class CacheCommand extends Command
 
     $export = $registry->modules()
       ->map(fn (ConfigStore $configStore): array => $configStore->toArray())
-      ->toArray();
+      ->all();
 
     $cache_path = $registry->getCachePath();
     $cache_contents = '<?php return '.var_export($export, true).';'.PHP_EOL;

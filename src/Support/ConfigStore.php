@@ -11,38 +11,42 @@ use JsonException;
 use RuntimeException;
 use Symfony\Component\Finder\SplFileInfo;
 
-class ConfigStore implements Arrayable
+/**
+ * @implements Arrayable<string, mixed>
+ */
+final class ConfigStore implements Arrayable
 {
-  public Collection $namespaces;
-
   /**
    * @throws JsonException
    */
   public static function fromComposerFile(SplFileInfo $composer_file): self
   {
+    /** @var array{autoload?: array{psr-4?: array<string, string>}} $composer_config */
     $composer_config = json_decode($composer_file->getContents(), true, 16, JSON_THROW_ON_ERROR);
 
     $base_path = rtrim(str_replace('\\', '/', $composer_file->getPath()), '/');
 
     $name = basename($base_path);
 
+    /** @var Collection<string, string> $namespaces */
     $namespaces = Collection::make($composer_config['autoload']['psr-4'] ?? [])
-      ->mapWithKeys(function (string $src, $namespace) use ($base_path) {
+      ->mapWithKeys(function (string $src, string $namespace) use ($base_path): array {
         $path = $base_path.'/'.$src;
 
         return [$path => $namespace];
       });
 
-    return new static($name, $base_path, $namespaces);
+    return new self($name, $base_path, $namespaces);
   }
 
+  /**
+   * @param  Collection<string, string>  $namespaces
+   */
   public function __construct(
     public string $name,
     public string $base_path,
-    ?Collection $namespaces = null
-  ) {
-    $this->namespaces = $namespaces ?? new Collection;
-  }
+    public Collection $namespaces = new Collection,
+  ) {}
 
   public function path(string $to = ''): string
   {
@@ -51,7 +55,7 @@ class ConfigStore implements Arrayable
 
   public function namespace(): string
   {
-    return $this->namespaces->first();
+    return $this->namespaces->first() ?? '';
   }
 
   public function qualify(string $class_name): string
@@ -75,16 +79,22 @@ class ConfigStore implements Arrayable
     throw new RuntimeException("Unable to infer qualified class name for '$path'");
   }
 
+  /**
+   * @return array{name: string, base_path: string, namespaces: array<string, string>}
+   */
   public function toArray(): array
   {
+    /** @var array<string, string> $namespacesArray */
+    $namespacesArray = $this->namespaces->all();
+
     return [
       'name' => $this->name,
       'base_path' => $this->base_path,
-      'namespaces' => $this->namespaces->toArray(),
+      'namespaces' => $namespacesArray,
     ];
   }
 
-  protected function formatPathAsNamespace(string $path): string
+  private function formatPathAsNamespace(string $path): string
   {
     $path = trim($path, '/');
 

@@ -14,16 +14,26 @@ trait ConfiguresCommands
   use GeneratesModules;
 
   /**
+   * @param  string  $rootNamespace
+   *
    * @throws BindingResolutionException
    */
-  protected function getDefaultNamespace($rootNamespace): array|string
+  protected function getDefaultNamespace($rootNamespace): string
   {
+    /** @var string $namespace */
     $namespace = parent::getDefaultNamespace($rootNamespace);
     $module = $this->module();
 
-    if ($module && ! str_contains((string) $rootNamespace, $module->namespaces->first())) {
-      $find = rtrim((string) $rootNamespace, '\\');
-      $replace = rtrim($module->namespaces->first(), '\\');
+    if ($module === null) {
+      return $namespace;
+    }
+
+    $rootNamespaceStr = (string) $rootNamespace;
+    $firstNamespace = $module->namespaces->first();
+
+    if (is_string($firstNamespace) && ! str_contains($rootNamespaceStr, $firstNamespace)) {
+      $find = rtrim($rootNamespaceStr, '\\');
+      $replace = rtrim($firstNamespace, '\\');
       $namespace = str_replace($find, $replace, $namespace);
     }
 
@@ -31,13 +41,22 @@ trait ConfiguresCommands
   }
 
   /**
+   * @param  string  $name
+   *
    * @throws BindingResolutionException
    */
   protected function qualifyClass($name): string
   {
     $name = ltrim((string) $name, '\\/');
+    $module = $this->module();
 
-    if (($module = $this->module()) && Str::startsWith($name, $module->namespaces->first())) {
+    if ($module === null) {
+      return parent::qualifyClass($name);
+    }
+
+    $firstNamespace = $module->namespaces->first();
+
+    if (is_string($firstNamespace) && Str::startsWith($name, $firstNamespace)) {
       return $name;
     }
 
@@ -47,42 +66,53 @@ trait ConfiguresCommands
   /**
    * @throws BindingResolutionException
    */
-  protected function qualifyModel(string $model): array|string
+  protected function qualifyModel(string $model): string
   {
-    if ($module = $this->module()) {
-      $model = str_replace('/', '\\', ltrim($model, '\\/'));
+    $module = $this->module();
 
-      if (Str::startsWith($model, $module->namespace())) {
-        return $model;
-      }
-
-      return $module->qualify('Models\\'.$model);
+    if ($module === null) {
+      return parent::qualifyModel($model);
     }
 
-    return parent::qualifyModel($model);
+    $model = str_replace('/', '\\', ltrim($model, '\\/'));
+
+    if (Str::startsWith($model, $module->namespace())) {
+      return $model;
+    }
+
+    return $module->qualify('Models\\'.$model);
   }
 
   /**
+   * @param  string  $name
+   *
    * @throws BindingResolutionException
    */
-  protected function getPath($name): array|string
+  protected function getPath($name): string
   {
-    if ($module = $this->module()) {
-      $name = Str::replaceFirst($module->namespaces->first(), '', $name);
+    $module = $this->module();
+
+    if ($module !== null) {
+      $firstNamespace = $module->namespaces->first();
+      if (is_string($firstNamespace)) {
+        $name = Str::replaceFirst($firstNamespace, '', (string) $name);
+      }
     }
 
+    /** @var string $path */
     $path = parent::getPath($name);
 
-    if ($module) {
+    if ($module !== null) {
+      $firstKey = $module->namespaces->keys()->first();
       // Set up our replacements as a [find -> replace] array
       $replacements = [
-        $this->laravel->path() => $module->namespaces->keys()->first(),
+        $this->laravel->path() => is_string($firstKey) ? $firstKey : '',
         $this->laravel->basePath('tests/Tests') => $module->path('tests'),
         $this->laravel->databasePath() => $module->path('database'),
       ];
 
       // Normalize all our paths for compatibility's sake
-      $normalize = (fn ($path): string => rtrim((string) $path, '/').'/');
+      $normalize = fn (string $p): string => rtrim($p, '/').'/';
 
       $find = array_map($normalize, array_keys($replacements));
       $replace = array_map($normalize, array_values($replacements));
@@ -94,6 +124,10 @@ trait ConfiguresCommands
     return $path;
   }
 
+  /**
+   * @param  string  $command
+   * @param  array<string, mixed>  $arguments
+   */
   public function call($command, array $arguments = []): int
   {
     // Pass the --module flag on to subsequent commands

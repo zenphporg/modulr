@@ -1,52 +1,11 @@
 includes:
-    - vendor/larastan/larastan/extension.neon
+  - vendor/larastan/larastan/extension.neon
+  - vendor/nesbot/carbon/extension.neon
+  - phar://phpstan.phar/conf/bleedingEdge.neon
 
 parameters:
-    level: 5
-    paths:
-        - src
-    excludePaths:
-        - tests
-    ignoreErrors:
-        # Allow our custom Finder methods
-        - '#Call to an undefined method Symfony\\Component\\Finder\\Finder::(inOrEmpty|collect|first)\(\)#'
-        # Allow unsafe usage of new static() in our utility classes
-        - '#Unsafe usage of new static\(\)#'
-        # Allow mixed types for Laravel's dynamic properties
-        - '#Call to an undefined method Illuminate\\.*::#'
-        - '#Access to an undefined property Illuminate\\.*::\$#'
-        # Allow Laravel's magic methods
-        - '#Method .* has no return type specified#'
-        # Allow Laravel's container bindings
-        - '#Parameter .* of method .* has no type hint#'
-        # Allow negated boolean expressions that are always false (defensive programming)
-        - '#Negated boolean expression is always false#'
-        # Allow Laravel migration command method calls
-        - '#Call to an undefined static method Illuminate\\Database\\Console\\Migrations\\MigrateMakeCommand::(getDefaultNamespace|qualifyClass|qualifyModel|getPath)\(\)#'
-        # Allow return type issues in console commands
-        - '#Return type \(void\) of method .*(InstallCommand|MakeModule)::newLine\(\) should be compatible with return type#'
-        # Allow anonymous function return type issues
-        - '#Anonymous function never returns array so it can be removed from the return type#'
-        # Allow XML assignment issues in PhpStorm writers
-        - '#\(SimpleXMLElement\|null\) does not accept string#'
-        # Allow FinderCollection return type issues
-        - '#Method .*FinderCollection::inOrEmpty\(\) should return static.*but returns Symfony\\Component\\Finder\\Finder#'
-        # Allow missing iterable value types (common in Laravel packages)
-        - '#return type has no value type specified in iterable type array#'
-        - '#has parameter .* with no value type specified in iterable type array#'
-        # Allow missing generic types for Laravel collections
-        - '#generic class Illuminate\\Support\\Collection but does not specify its types#'
-        - '#Unable to resolve the template type .* in call to#'
-        # Allow missing parameter types in utility methods
-        - '#has parameter .* with no type specified#'
-        # Allow Laravel helper function issues
-        - '#Call to an undefined function collect#'
-        # Allow missing iterable value types (common in Laravel packages)
-        - '#return type has no value type specified in iterable type array#'
-        - '#has parameter .* with no value type specified in iterable type array#'
-        # Allow missing generic types for Laravel collections
-        - '#generic class Illuminate\\Support\\Collection but does not specify its types#'
-        - '#Unable to resolve the template type .* in call to#'
-        # Allow missing parameter types in utility methods
-        - '#has parameter .* with no type specified#'
-    reportUnmatchedIgnoredErrors: false
+  level: max
+  paths:
+    - src
+  excludePaths:
+    - tests

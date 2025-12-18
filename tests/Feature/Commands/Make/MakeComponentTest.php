@@ -2,12 +2,14 @@
 
 // TestCase applied via Pest.php
 use Zen\Modulr\Console\Commands\Make\MakeComponent;
+use Zen\Modulr\Tests\Feature\Concerns\TestsMakeCommands;
+use Zen\Modulr\Tests\Feature\Concerns\WritesToAppFilesystem;
 
-uses(\Zen\Modulr\Tests\Feature\Concerns\TestsMakeCommands::class);
+uses(TestsMakeCommands::class);
 
-uses(\Zen\Modulr\Tests\Feature\Concerns\WritesToAppFilesystem::class);
+uses(WritesToAppFilesystem::class);
 
-test('it overrides the default command', function () {
+test('it overrides the default command', function (): void {
   $this->requiresLaravelVersion('11.0');
 
   $this->artisan('make:component', ['--help' => true])
@@ -15,7 +17,7 @@ test('it overrides the default command', function () {
     ->assertExitCode(0);
 });
 
-test('it scaffolds a component in the module when module option is set', function () {
+test('it scaffolds a component in the module when module option is set', function (): void {
   $command = MakeComponent::class;
   $arguments = ['name' => 'TestComponent'];
   $expected_path = 'src/View/Components/TestComponent.php';
@@ -30,7 +32,7 @@ test('it scaffolds a component in the module when module option is set', functio
   $this->assertModuleFile($expected_view_path);
 });
 
-test('it scaffolds a component in the app when module option is missing', function () {
+test('it scaffolds a component in the app when module option is missing', function (): void {
   $command = MakeComponent::class;
   $arguments = ['name' => 'TestComponent'];
   $expected_path = 'app/View/Components/TestComponent.php';

@@ -23,16 +23,19 @@
     "ext-dom": "*",
     "ext-json": "*",
     "ext-simplexml": "*",
-    "composer/composer": "^2.8.12",
+    "composer/composer": "^2.9.2",
     "illuminate/support": "^11.0|^12.0"
   },
   "require-dev": {
     "mockery/mockery": "^1.6.12",
-    "zenphp/fixr": "^1.0.3",
-    "rector/rector": "^2.2.5",
-    "pestphp/pest": "^4.1.2",
-    "orchestra/testbench": "^10.6.0",
-    "larastan/larastan": "^3.7.2"
+    "zenphp/fixr": "^1.0.4",
+    "rector/rector": "^2.2.14",
+    "pestphp/pest": "^4.2.0",
+    "orchestra/testbench": "^10.8.0",
+    "larastan/larastan": "^3.8.1",
+    "pestphp/pest-plugin-type-coverage": "^4.0.3",
+    "pestphp/pest-plugin-laravel": "^4.0.0",
+    "driftingly/rector-laravel": "^2.1"
   },
   "autoload": {
     "psr-4": {
@@ -45,10 +48,25 @@
     }
   },
   "scripts": {
-    "fix": "vendor/bin/fixr",
-    "test": "vendor/bin/pest",
-    "test:coverage": "vendor/bin/pest --coverage",
-    "analyze": "phpstan analyze"
+    "lint": [
+      "./vendor/bin/rector",
+      "./vendor/bin/fixr"
+    ],
+    "test:types": "./vendor/bin/pest --type-coverage --parallel --min=100",
+    "test:lint": [
+      "./vendor/bin/rector --dry-run",
+      "./vendor/bin/fixr --test"
+    ],
+    "test:feat": "./vendor/bin/pest",
+    "test:coverage": "./vendor/bin/pest --coverage --coverage-clover=clover.xml --min=100.0; php bin/clean-coverage",
+    "test:static": "./vendor/bin/phpstan analyze",
+    "test": [
+      "@test:types",
+      "@test:static",
+      "@test:lint",
+      "@test:types",
+      "@test:feat"
+    ]
   },
   "extra": {
     "laravel": {

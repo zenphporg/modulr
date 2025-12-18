@@ -2,31 +2,31 @@
 
 use Zen\Modulr\Console\Commands\InstallCommand;
 
-test('it can be instantiated', function () {
+test('it can be instantiated', function (): void {
   $command = $this->app->make(InstallCommand::class);
   expect($command)->toBeInstanceOf(InstallCommand::class);
 });
 
-test('it has correct signature', function () {
+test('it has correct signature', function (): void {
   $command = $this->app->make(InstallCommand::class);
   expect($command->getName())->toBe('modules:install');
 });
 
-test('it has description', function () {
+test('it has description', function (): void {
   $command = $this->app->make(InstallCommand::class);
   expect($command->getDescription())->not->toBeEmpty();
 });
 
-test('it has handle method', function () {
+test('it has handle method', function (): void {
   expect(method_exists(InstallCommand::class, 'handle'))->toBeTrue();
 });
 
-test('it can execute without errors', function () {
+test('it can execute without errors', function (): void {
   // Skip execution test as it requires actual package files
   expect(method_exists(InstallCommand::class, 'handle'))->toBeTrue();
 });
 
-test('it has protected helper methods', function () {
+test('it has protected helper methods', function (): void {
   $reflection = new ReflectionClass(InstallCommand::class);
 
   expect($reflection->hasMethod('installComposerPackage'))->toBeTrue();
@@ -37,7 +37,7 @@ test('it has protected helper methods', function () {
   expect($reflection->hasMethod('updateComposer'))->toBeTrue();
 });
 
-test('it has required properties', function () {
+test('it has required properties', function (): void {
   $reflection = new ReflectionClass(InstallCommand::class);
 
   expect($reflection->hasProperty('package_name'))->toBeTrue();
@@ -48,18 +48,17 @@ test('it has required properties', function () {
   expect($reflection->hasProperty('base_path'))->toBeTrue();
 });
 
-test('it can get package argument', function () {
+test('it can get package argument', function (): void {
   $command = $this->app->make(InstallCommand::class);
 
   $reflection = new ReflectionClass($command);
   $definition = $reflection->getMethod('getDefinition');
-  $definition->setAccessible(true);
 
   $commandDefinition = $definition->invoke($command);
   expect($commandDefinition->hasArgument('package'))->toBeTrue();
 });
 
-test('it can execute movePackageToModules with missing source', function () {
+test('it can execute movePackageToModules with missing source', function (): void {
   // Test that the method exists and is protected
   $reflection = new ReflectionClass(InstallCommand::class);
   expect($reflection->hasMethod('movePackageToModules'))->toBeTrue();
@@ -68,7 +67,7 @@ test('it can execute movePackageToModules with missing source', function () {
   expect($method->isProtected())->toBeTrue();
 });
 
-test('it can execute setUpStyles method', function () {
+test('it can execute setUpStyles method', function (): void {
   // Test that the method exists and is protected
   $reflection = new ReflectionClass(InstallCommand::class);
   expect($reflection->hasMethod('setUpStyles'))->toBeTrue();
@@ -77,7 +76,7 @@ test('it can execute setUpStyles method', function () {
   expect($method->isProtected())->toBeTrue();
 });
 
-test('it has constructor dependencies', function () {
+test('it has constructor dependencies', function (): void {
   $reflection = new ReflectionClass(InstallCommand::class);
   $constructor = $reflection->getConstructor();
 
@@ -89,10 +88,10 @@ test('it has constructor dependencies', function () {
   expect($params[1]->getName())->toBe('module_registry');
 });
 
-test('it publishes config file', function () {
+test('it publishes config file', function (): void {
   expect(method_exists(InstallCommand::class, 'handle'))->toBeTrue();
 });
 
-test('it creates modules directory', function () {
+test('it creates modules directory', function (): void {
   expect(class_exists(InstallCommand::class))->toBeTrue();
 });

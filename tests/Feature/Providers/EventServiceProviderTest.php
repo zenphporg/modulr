@@ -2,24 +2,24 @@
 
 use Zen\Modulr\Providers\EventServiceProvider;
 
-test('it extends core event service provider', function () {
+test('it extends core event service provider', function (): void {
   expect(class_exists(EventServiceProvider::class))->toBeTrue();
 });
 
-test('it can be instantiated', function () {
+test('it can be instantiated', function (): void {
   $provider = new EventServiceProvider($this->app);
 
   expect($provider)->toBeInstanceOf(EventServiceProvider::class);
 });
 
-test('it has discover events method', function () {
+test('it has discover events method', function (): void {
   $provider = new EventServiceProvider($this->app);
 
   expect(method_exists($provider, 'discoverEvents'))->toBeTrue();
   expect(method_exists($provider, 'shouldDiscoverEvents'))->toBeTrue();
 });
 
-test('it can discover events', function () {
+test('it can discover events', function (): void {
   $provider = new EventServiceProvider($this->app);
 
   $events = $provider->discoverEvents();
@@ -27,7 +27,7 @@ test('it can discover events', function () {
   expect($events)->toBeArray();
 });
 
-test('it determines if should discover events', function () {
+test('it determines if should discover events', function (): void {
   $provider = new EventServiceProvider($this->app);
 
   $shouldDiscover = $provider->shouldDiscoverEvents();
@@ -35,7 +35,7 @@ test('it determines if should discover events', function () {
   expect($shouldDiscover)->toBeBool();
 });
 
-test('it discovers events within module directories', function () {
+test('it discovers events within module directories', function (): void {
   $provider = new EventServiceProvider($this->app);
 
   $reflection = new ReflectionClass($provider);

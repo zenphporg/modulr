@@ -2,6 +2,7 @@
 
 namespace Zen\Modulr\Tests;
 
+use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Encryption\Encrypter;
 use Zen\Modulr\Console\Commands\Make\MakeModule;
@@ -20,7 +21,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
 
     parent::setUp();
 
-    $config = $this->app['config'];
+    $config = $this->app->make(Repository::class);
 
     // Add encryption key for HTTP tests
     $config->set('app.key', 'base64:'.base64_encode(Encrypter::generateKey('AES-128-CBC')));
@@ -35,12 +36,10 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
     }
 
     // Override the Registry binding to use our local modules path
-    $this->app->singleton(Registry::class, function () use ($modulesPath) {
-      return new Registry(
-        $modulesPath,
-        $this->app->bootstrapPath('cache/modules.php')
-      );
-    });
+    $this->app->singleton(fn (): Registry => new Registry(
+      $modulesPath,
+      $this->app->bootstrapPath('cache/modules.php')
+    ));
 
     // Reload the module registry
     $this->app->make(Registry::class)->reload();
@@ -67,6 +66,9 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
       'name' => $name,
       '--accept-namespace' => true,
     ]);
+
+    // Reload registry to pick up the newly created module
+    $this->app->make(Registry::class)->reload();
 
     return $this->app->make(Registry::class)->module($name);
   }
@@ -96,7 +98,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
 
   protected function defineEnvironment($app)
   {
-    $config = $app['config'];
+    $config = $app->make(Repository::class);
 
     $config->set('modulr.modules_directory', 'modules');
     $config->set('modulr.modules_namespace', 'Modules');

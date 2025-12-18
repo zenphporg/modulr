@@ -2,13 +2,13 @@
 
 use Zen\Modulr\Support\PhpStorm\ConfigWriter;
 
-test('it is abstract class', function () {
+test('it is abstract class', function (): void {
   $reflection = new ReflectionClass(ConfigWriter::class);
 
   expect($reflection->isAbstract())->toBeTrue();
 });
 
-test('it has required constructor parameters', function () {
+test('it has required constructor parameters', function (): void {
   $reflection = new ReflectionClass(ConfigWriter::class);
   $constructor = $reflection->getConstructor();
 
@@ -20,7 +20,7 @@ test('it has required constructor parameters', function () {
   expect($params[1]->getName())->toBe('module_registry');
 });
 
-test('it has abstract write method', function () {
+test('it has abstract write method', function (): void {
   $reflection = new ReflectionClass(ConfigWriter::class);
 
   expect($reflection->hasMethod('write'))->toBeTrue();
@@ -29,7 +29,7 @@ test('it has abstract write method', function () {
   expect($writeMethod->isAbstract())->toBeTrue();
 });
 
-test('it has handle method', function () {
+test('it has handle method', function (): void {
   $reflection = new ReflectionClass(ConfigWriter::class);
 
   expect($reflection->hasMethod('handle'))->toBeTrue();
@@ -39,7 +39,7 @@ test('it has handle method', function () {
   expect($handleMethod->isAbstract())->toBeFalse();
 });
 
-test('it has protected helper methods', function () {
+test('it has protected helper methods', function (): void {
   $reflection = new ReflectionClass(ConfigWriter::class);
 
   expect($reflection->hasMethod('handle'))->toBeTrue();

@@ -16,24 +16,27 @@ class SeedCommand extends \Illuminate\Database\Console\Seeds\SeedCommand
   use GeneratesModules;
 
   /**
-   * @return Seeder
-   *
    * @throws BindingResolutionException
    */
   #[Override]
-  protected function getSeeder()
+  protected function getSeeder(): Seeder
   {
     if (($module = $this->module()) instanceof ConfigStore) {
+      /** @var string $default */
       $default = $this->getDefinition()->getOption('class')->getDefault();
+      /** @var string $class */
       $class = $this->input->getOption('class');
 
       if ($class === $default) {
         $class = $module->qualify($default);
       } elseif (! Str::contains($class, 'Database\\Seeders')) {
-        $class = $module->qualify("Database\\Seeders\\$class");
+        $class = $module->qualify("Database\\Seeders\\{$class}");
       }
 
-      return $this->laravel->make($class)
+      /** @var Seeder $seeder */
+      $seeder = $this->laravel->make($class);
+
+      return $seeder
         ->setContainer($this->laravel)
         ->setCommand($this);
     }

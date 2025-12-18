@@ -3,6 +3,7 @@
 namespace Zen\Modulr\Tests\Feature\Concerns;
 
 use Zen\Modulr\Console\Commands\Make\MakeModule;
+use Zen\Modulr\Support\Registry;
 
 trait TestsMakeCommands
 {
@@ -16,7 +17,7 @@ trait TestsMakeCommands
     ])->assertExitCode(0);
 
     // Reload the module registry so the new module is available
-    $this->app->make(\Zen\Modulr\Support\Registry::class)->reload();
+    $this->app->make(Registry::class)->reload();
 
     $this->artisan($command, array_merge([
       '--module' => $module_name,
@@ -36,7 +37,7 @@ trait TestsMakeCommands
   {
     $full_path = $this->getModulePath($module_name, $expected_path);
 
-    $directory = dirname($full_path);
+    $directory = dirname((string) $full_path);
     $files = implode(', ', glob($directory.'/*') ?? []);
 
     $directory = dirname($directory);

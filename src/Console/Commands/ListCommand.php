@@ -21,7 +21,7 @@ class ListCommand extends Command
 
     $table = $registry->modules()
       ->map(function (ConfigStore $configStore) use (&$namespace_title): array {
-        $namespaces = $configStore->namespaces->map(fn ($namespace): string => rtrim($namespace, '\\'));
+        $namespaces = $configStore->namespaces->map(fn (string $namespace): string => rtrim($namespace, '\\'));
 
         if ($configStore->namespaces->count() > 1) {
           $namespace_title = 'Namespaces';
@@ -33,7 +33,7 @@ class ListCommand extends Command
           $namespaces->implode(', '),
         ];
       })
-      ->toArray();
+      ->all();
 
     $count = $registry->modules()->count();
     $this->line('You have '.$count.' '.Str::plural('module', $count).' installed.');

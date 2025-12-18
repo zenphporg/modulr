@@ -16,16 +16,19 @@ class MakeFactory extends FactoryMakeCommand
   use ConfiguresCommands;
 
   /**
-   * @return \Zen\Modulr\Console\Commands\Make\MakeFactory
+   * @param  string  $stub
+   * @param  string  $name
    *
    * @throws BindingResolutionException
    */
   #[Override]
-  protected function replaceNamespace(&$stub, $name)
+  protected function replaceNamespace(&$stub, $name): static // @pest-ignore-type
   {
     if (($module = $this->module()) instanceof ConfigStore) {
-      $model = $this->option('model')
-          ? $this->qualifyModel($this->option('model'))
+      /** @var string|null $modelOption */
+      $modelOption = $this->option('model');
+      $model = ($modelOption !== null && $modelOption !== '')
+          ? $this->qualifyModel($modelOption)
           : $this->qualifyModel($this->guessModelName($name));
 
       $models_namespace = $module->qualify('Models');
@@ -50,12 +53,12 @@ class MakeFactory extends FactoryMakeCommand
   }
 
   /**
-   * @return array|string
+   * @param  string  $name
    *
    * @throws BindingResolutionException
    */
   #[Override]
-  protected function guessModelName($name)
+  protected function guessModelName($name): string // @pest-ignore-type
   {
     if (($module = $this->module()) instanceof ConfigStore) {
       if (Str::endsWith($name, 'Factory')) {

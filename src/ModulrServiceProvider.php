@@ -7,11 +7,14 @@ namespace Zen\Modulr;
 use Illuminate\Console\Application as Artisan;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Auth\Access\Gate;
+use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Translation\Translator as TranslatorContract;
 use Illuminate\Database\Console\Migrations\MigrateMakeCommand;
 use Illuminate\Database\Eloquent\Factories\Factory as EloquentFactory;
+use Illuminate\Database\Migrations\MigrationCreator;
 use Illuminate\Database\Migrations\Migrator;
+use Illuminate\Support\Composer;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -26,6 +29,7 @@ use Zen\Modulr\Console\Commands\InstallCommand;
 use Zen\Modulr\Console\Commands\ListCommand;
 use Zen\Modulr\Console\Commands\Make\MakeMigration;
 use Zen\Modulr\Console\Commands\Make\MakeModule;
+use Zen\Modulr\Console\Commands\RemoveCommand;
 use Zen\Modulr\Console\Commands\SyncCommand;
 use Zen\Modulr\Exceptions\CannotFindModuleForPathException;
 use Zen\Modulr\Providers\CommandsServiceProvider;
@@ -52,10 +56,12 @@ class ModulrServiceProvider extends ServiceProvider
   {
     $this->mergeConfigFrom(dirname(__DIR__).'/config/modulr.php', 'modulr');
 
-    App::macro('modulePath', function ($path = '') {
+    $app = $this->app;
+    App::macro('modulePath', static function (string $path = '') use ($app): string {
+      /** @var string $moduleDirectory */
       $moduleDirectory = config('modulr.modules_directory', 'src');
 
-      return $this->app->basePath($moduleDirectory.($path ? "/$path" : ''));
+      return $app->basePath($moduleDirectory.($path !== '' ? "/$path" : ''));
     });
 
     $this->app->register(CommandsServiceProvider::class);
@@ -68,7 +74,14 @@ class ModulrServiceProvider extends ServiceProvider
 
     $this->app->singleton(AutoDiscoveryHelper::class);
 
-    $this->app->singleton(MakeMigration::class, fn ($app): MigrateMakeCommand => new MigrateMakeCommand($app['migration.creator'], $app['composer']));
+    $this->app->singleton(MakeMigration::class, function (\Illuminate\Foundation\Application $app): MigrateMakeCommand {
+      /** @var MigrationCreator $creator */
+      $creator = $app->make('migration.creator');
+      /** @var Composer $composer */
+      $composer = $app->make(Composer::class);
+
+      return new MigrateMakeCommand($creator, $composer);
+    });
 
     $this->registerEloquentFactories();
 
@@ -128,6 +141,7 @@ class ModulrServiceProvider extends ServiceProvider
 
     $this->commands([
       MakeModule::class,
+      RemoveCommand::class,
       CacheCommand::class,
       ClearCommand::class,
       InstallCommand::class,
@@ -303,16 +317,17 @@ class ModulrServiceProvider extends ServiceProvider
   protected function getModulesBasePath(): string
   {
     if ($this->modules_path === null) {
-      $directory_name = $this->app->make('config')->get('modulr.modules_directory', 'modules');
+      /** @var string $directory_name */
+      $directory_name = $this->app->make(Repository::class)->get('modulr.modules_directory', 'modules');
       $this->modules_path = str_replace('\\', '/', $this->app->basePath($directory_name));
     }
 
     return $this->modules_path;
   }
 
-  protected function isInstantiableCommand($command): bool
+  protected function isInstantiableCommand(string $command): bool
   {
     return is_subclass_of($command, Command::class)
-        && ! (new ReflectionClass($command))->isAbstract();
+        && ! new ReflectionClass($command)->isAbstract();
   }
 }

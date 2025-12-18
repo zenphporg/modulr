@@ -97,7 +97,7 @@ All modules follow existing Laravel conventions, and auto-discovery should work 
 
 We provide a few helper commands:
 
-- `php artisan modules:make` — scaffold a new module (--empty for and empty module direactory)
+- `php artisan modules:make` — scaffold a new module (--empty for and empty module directory)
 - `php artisan modules:install` - install any registered composer package as a module.
 - `php artisan modules:cache` — cache the loaded modules for slightly faster auto-discovery
 - `php artisan modules:clear` — clear the module cache
@@ -133,7 +133,7 @@ We also add a `--module=` option to most Laravel `make:` commands so that you ca
 
 #### Other Laravel Commands
 
-In addition to adding a `--module` option to most `make:` commands, we’ve also added the same option to the `db:seed` command. If you pass the `--module` option to `db:seed`, it will look for your seeder within your module namespace:
+In addition to adding a `--module` option to most `make:` commands, we've also added the same option to the `db:seed` command. If you pass the `--module` option to `db:seed`, it will look for your seeder within your module namespace:
 
 - `php artisan db:seed --module=[module name]` will try to call `Modules\MyModule\Database\Seeders\DatabaseSeeder`
 - `php artisan db:seed --class=MySeeder --module=[module name]` will try to call `Modules\MyModule\Database\Seeders\MySeeder`

@@ -11,13 +11,17 @@ use Zen\Modulr\Support\Facades\Modulr;
 class DiscoverEvents extends \Illuminate\Foundation\Events\DiscoverEvents
 {
   /**
-   * @return string
+   * @param  string  $basePath
+   * @return class-string
    */
   #[Override]
-  protected static function classFromFile(SplFileInfo $file, $basePath)
+  protected static function classFromFile(SplFileInfo $file, $basePath): string // @pest-ignore-type
   {
     if ($module = Modulr::moduleForPath($file->getRealPath())) {
-      return $module->pathToFullyQualifiedClassName($file->getPathname());
+      /** @var class-string $class */
+      $class = $module->pathToFullyQualifiedClassName($file->getPathname());
+
+      return $class;
     }
 
     return parent::classFromFile($file, $basePath);

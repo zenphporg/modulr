@@ -6,6 +6,7 @@ namespace Zen\Modulr\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
+use SimpleXMLElement;
 use Symfony\Component\Finder\SplFileInfo;
 use Zen\Modulr\Support\FinderCollection;
 use Zen\Modulr\Support\PhpStorm\LaravelConfigWriter;
@@ -20,15 +21,9 @@ class SyncCommand extends Command
 
   protected $description = 'Sync your project\'s configuration with your current modules';
 
-  /**
-   * @var Filesystem
-   */
-  protected $filesystem;
+  protected Filesystem $filesystem;
 
-  /**
-   * @var Registry
-   */
-  protected $registry;
+  protected Registry $registry;
 
   public function handle(Registry $registry, Filesystem $filesystem): void
   {
@@ -52,26 +47,34 @@ class SyncCommand extends Command
       return;
     }
 
+    /** @var string $modules_directory */
     $modules_directory = config('modulr.modules_directory', 'modules');
 
     $config = simplexml_load_string($this->filesystem->get($config_path));
+    if ($config === false) {
+      $this->error('Failed to parse phpunit.xml file. Skipping PHPUnit configuration.');
+
+      return;
+    }
 
     $existing_nodes = $config->xpath("//phpunit//testsuites//testsuite//directory[text()='./{$modules_directory}/*/tests']");
 
-    if (count($existing_nodes) > 0) {
+    if (is_array($existing_nodes) && count($existing_nodes) > 0) {
       $this->info('Modules test suite already exists in phpunit.xml');
 
       return;
     }
 
     $testsuites = $config->xpath('//phpunit//testsuites');
-    if (! count($testsuites)) {
+    if (! is_array($testsuites) || count($testsuites) === 0) {
       $this->error('Cannot find <testsuites> node in phpunit.xml file. Skipping PHPUnit configuration.');
 
       return;
     }
 
-    $testsuite = $testsuites[0]->addChild('testsuite');
+    /** @var SimpleXMLElement $firstTestsuite */
+    $firstTestsuite = $testsuites[0];
+    $testsuite = $firstTestsuite->addChild('testsuite');
     $testsuite->addAttribute('name', 'Modules');
 
     $directory = $testsuite->addChild('directory');
@@ -80,8 +83,11 @@ class SyncCommand extends Command
 
     $config->formatOutput = true;
 
-    $this->filesystem->put($config_path, $config->asXML());
-    $this->info('Added "Modules" PHPUnit test suite.');
+    $xmlContent = $config->asXML();
+    if ($xmlContent !== false) {
+      $this->filesystem->put($config_path, $xmlContent);
+      $this->info('Added "Modules" PHPUnit test suite.');
+    }
   }
 
   protected function updatePhpStormConfig(): void

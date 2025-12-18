@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Filesystem\Filesystem;
 use Zen\Modulr\ModulrServiceProvider;
 use Zen\Modulr\Support\Facades\Modulr;
 use Zen\Modulr\Tests\TestCase;
@@ -20,28 +21,24 @@ pest()->extend(TestCase::class)->in('Feature');
  * "expect()" function gives you access to a set of "expectations" methods that you can use
  * to assert different things. Of course, you may extend the Expectation API at any time.
  */
-expect()->extend('toBeOne', function () {
-  return $this->toBe(1);
-});
+expect()->extend('toBeOne', fn () => $this->toBe(1));
 
 /**
  * SHARED PACKAGE PROVIDERS
  *
  * Base package providers that most tests need
  */
-function getPackageProviders($app)
+function getPackageProviders($app): array
 {
-  $providers = [
+  return [
     ModulrServiceProvider::class,
   ];
-
-  return $providers;
 }
 
 /**
  * SHARED PACKAGE ALIASES
  */
-function getPackageAliases($app)
+function getPackageAliases($app): array
 {
   return [
     'Modulr' => Modulr::class,
@@ -51,7 +48,7 @@ function getPackageAliases($app)
 /**
  * SHARED ENVIRONMENT CONFIGURATION
  */
-function defineEnvironment($app)
+function defineEnvironment(array $app): array
 {
   $config = $app['config'];
 
@@ -78,7 +75,7 @@ function defineEnvironment($app)
 /**
  * SHARED APPLICATION CONFIGURATION
  */
-function resolveApplicationConfiguration($app)
+function resolveApplicationConfiguration(array $app): void
 {
   defineEnvironment($app);
 }
@@ -101,19 +98,19 @@ function requiresLaravelVersion(string $minimum_version, string $operator = '>='
  *
  * Clean up the tests/app directory after all tests complete
  */
-register_shutdown_function(function () {
+register_shutdown_function(function (): void {
   $testsAppDir = __DIR__.'/app';
 
   if (is_dir($testsAppDir)) {
     try {
-      $filesystem = new \Illuminate\Filesystem\Filesystem;
+      $filesystem = new Filesystem;
       $filesystem->deleteDirectory($testsAppDir);
 
       // Only show message if we're in a terminal (not during CI/automated runs)
       if (php_sapi_name() === 'cli' && isset($_SERVER['TERM'])) {
         echo "\n✓ Cleaned up tests/app directory\n";
       }
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
       // Silently fail - don't break the test run over cleanup issues
       error_log("Could not clean up tests/app directory: {$e->getMessage()}");
     }

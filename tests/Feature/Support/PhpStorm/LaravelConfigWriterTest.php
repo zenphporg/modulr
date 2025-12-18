@@ -1,29 +1,30 @@
 <?php
 
+use Zen\Modulr\Support\PhpStorm\ConfigWriter;
 use Zen\Modulr\Support\PhpStorm\LaravelConfigWriter;
 use Zen\Modulr\Support\Registry;
 
-test('it can be instantiated', function () {
+test('it can be instantiated', function (): void {
   $registry = new Registry('/path/to/modules', '');
   $writer = new LaravelConfigWriter('/path/to/config', $registry);
 
   expect($writer)->toBeInstanceOf(LaravelConfigWriter::class);
 });
 
-test('it extends config writer', function () {
+test('it extends config writer', function (): void {
   $reflection = new ReflectionClass(LaravelConfigWriter::class);
-  expect($reflection->getParentClass()->getName())->toBe(\Zen\Modulr\Support\PhpStorm\ConfigWriter::class);
+  expect($reflection->getParentClass()->getName())->toBe(ConfigWriter::class);
 });
 
-test('it has write method', function () {
+test('it has write method', function (): void {
   expect(method_exists(LaravelConfigWriter::class, 'write'))->toBeTrue();
 });
 
-test('it has handle method', function () {
+test('it has handle method', function (): void {
   expect(method_exists(LaravelConfigWriter::class, 'handle'))->toBeTrue();
 });
 
-test('it can write config with valid xml file', function () {
+test('it can write config with valid xml file', function (): void {
   // Create a temporary XML config file
   $tempFile = tempnam(sys_get_temp_dir(), 'laravel_config_');
   $xmlContent = '<?xml version="1.0" encoding="UTF-8"?>
@@ -47,7 +48,7 @@ test('it can write config with valid xml file', function () {
   }
 });
 
-test('it can handle method execution', function () {
+test('it can handle method execution', function (): void {
   // Create a temporary XML config file
   $tempFile = tempnam(sys_get_temp_dir(), 'laravel_config_');
   $xmlContent = '<?xml version="1.0" encoding="UTF-8"?>

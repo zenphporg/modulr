@@ -4,78 +4,155 @@ declare(strict_types=1);
 
 namespace Zen\Modulr\Support;
 
+use Generator;
 use Illuminate\Support\LazyCollection;
 use Illuminate\Support\Traits\ForwardsCalls;
 use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\Finder\SplFileInfo;
 
 /**
- * @mixin LazyCollection
+ * @mixin LazyCollection<string, SplFileInfo>
  * @mixin Finder
  */
-class FinderCollection
+final class FinderCollection
 {
   use ForwardsCalls;
 
+  /** @var array<int, string> */
   protected const array PREFER_COLLECTION_METHODS = ['filter', 'each', 'map'];
 
   public static function forFiles(): self
   {
-    return new static(Finder::create()->files());
+    return new self(Finder::create()->files());
   }
 
   public static function forDirectories(): self
   {
-    return new static(Finder::create()->directories());
+    return new self(Finder::create()->directories());
   }
 
+  /**
+   * @param  LazyCollection<string, SplFileInfo>|null  $lazyCollection
+   */
   public function __construct(
-    protected ?Finder $finder = null,
-    protected ?LazyCollection $collection = null,
+    private ?Finder $finder = null,
+    private ?LazyCollection $lazyCollection = null,
   ) {
-    if (! $this->finder && ! $this->collection) {
-      $this->collection = new LazyCollection;
+    if (! $this->finder && ! $this->lazyCollection) {
+      /** @var LazyCollection<string, SplFileInfo> $emptyCollection */
+      $emptyCollection = new LazyCollection;
+      $this->lazyCollection = $emptyCollection;
     }
   }
 
-  public function inOrEmpty(string|array $dirs): static
+  /**
+   * @param  string|array<int, string>  $dirs
+   */
+  public function in(string|array $dirs): self
+  {
+    if ($this->finder instanceof Finder) {
+      return new self($this->finder->in($dirs));
+    }
+
+    return $this;
+  }
+
+  /**
+   * @param  string|array<int, string>  $dirs
+   */
+  public function inOrEmpty(string|array $dirs): self
   {
     try {
       return $this->in($dirs);
     } catch (DirectoryNotFoundException) {
-      return new static;
+      return new self;
     }
   }
 
-  public function __call($name, $arguments)
+  /**
+   * @param  string|int|array<int, string|int>  $levels
+   */
+  public function depth(string|int|array $levels): self
+  {
+    if ($this->finder instanceof Finder) {
+      return new self($this->finder->depth($levels));
+    }
+
+    return $this;
+  }
+
+  /**
+   * @param  string|array<int, string>  $patterns
+   */
+  public function name(string|array $patterns): self
+  {
+    if ($this->finder instanceof Finder) {
+      return new self($this->finder->name($patterns));
+    }
+
+    return $this;
+  }
+
+  public function sortByName(bool $useNaturalSort = false): self
+  {
+    if ($this->finder instanceof Finder) {
+      return new self($this->finder->sortByName($useNaturalSort));
+    }
+
+    return $this;
+  }
+
+  /**
+   * Convert the finder results to a LazyCollection.
+   *
+   * @return LazyCollection<string, SplFileInfo>
+   */
+  public function collect(): LazyCollection
+  {
+    return $this->forwardCollection();
+  }
+
+  /**
+   * @param  array<int, mixed>  $arguments
+   */
+  public function __call(string $name, array $arguments): mixed
   {
     $result = $this->forwardCallTo($this->forwardCallTargetForMethod($name), $name, $arguments);
 
     if ($result instanceof Finder) {
-      return new static($result);
+      return new self($result);
     }
 
     if ($result instanceof LazyCollection) {
-      return new static($this->finder, $result);
+      return new self($this->finder, $result);
     }
 
     return $result;
   }
 
-  protected function forwardCallTargetForMethod(string $name): Finder|LazyCollection
+  /**
+   * @return Finder|LazyCollection<string, SplFileInfo>
+   */
+  private function forwardCallTargetForMethod(string $name): Finder|LazyCollection
   {
-    if (is_callable([$this->finder, $name]) && ! in_array($name, static::PREFER_COLLECTION_METHODS)) {
+    if ($this->finder instanceof Finder && is_callable([$this->finder, $name]) && ! in_array($name, self::PREFER_COLLECTION_METHODS)) {
       return $this->finder;
     }
 
     return $this->forwardCollection();
   }
 
-  protected function forwardCollection(): LazyCollection
+  /**
+   * @return LazyCollection<string, SplFileInfo>
+   */
+  private function forwardCollection(): LazyCollection
   {
-    return $this->collection ??= new LazyCollection(function () {
-      foreach ($this->finder as $key => $value) {
-        yield $key => $value;
+    return $this->lazyCollection ??= new LazyCollection(function (): Generator {
+      if ($this->finder instanceof Finder) {
+        foreach ($this->finder as $key => $value) {
+          yield $key => $value;
+        }
       }
     });
   }

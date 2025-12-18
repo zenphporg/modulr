@@ -1,11 +1,15 @@
 <?php
 
-// TestCase applied via Pest.php
-uses(\Zen\Modulr\Tests\Feature\Concerns\WritesToAppFilesystem::class);
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Database\Seeder;
+use Zen\Modulr\Tests\Feature\Concerns\WritesToAppFilesystem;
 
-test('it looks for seeders in module namespace when module option is set', function () {
-  $app_seeder = createMockSeeder();
-  $module_seeder = createMockSeeder();
+// TestCase applied via Pest.php
+uses(WritesToAppFilesystem::class);
+
+test('it looks for seeders in module namespace when module option is set', function (): void {
+  $app_seeder = createMockSeeder($this->app);
+  $module_seeder = createMockSeeder($this->app);
 
   $this->app->instance('Modules\\TestModule\\Database\\Seeders\\DatabaseSeeder', $module_seeder);
   $this->app->instance('Modules\\TestModule\\DatabaseSeeder', $module_seeder);
@@ -20,9 +24,9 @@ test('it looks for seeders in module namespace when module option is set', funct
   expect($app_seeder->invoked)->toEqual(0);
 });
 
-test('it looks for named seeders in module namespace when module option is set', function () {
-  $app_seeder = createMockSeeder();
-  $module_seeder = createMockSeeder();
+test('it looks for named seeders in module namespace when module option is set', function (): void {
+  $app_seeder = createMockSeeder($this->app);
+  $module_seeder = createMockSeeder($this->app);
 
   $this->app->instance('Modules\\TestModule\\Database\\Seeders\\Custom\\Seeder', $module_seeder);
   $this->app->instance('Database\\Seeders\\Custom\\Seeder', $app_seeder);
@@ -36,8 +40,8 @@ test('it looks for named seeders in module namespace when module option is set',
   expect($app_seeder->invoked)->toEqual(0);
 });
 
-test('it looks for seeders in app namespace when module option is missing', function () {
-  $mock = createMockSeeder();
+test('it looks for seeders in app namespace when module option is missing', function (): void {
+  $mock = createMockSeeder($this->app);
 
   $this->app->instance('Database\\Seeders\\DatabaseSeeder', $mock);
   $this->app->instance('DatabaseSeeder', $mock);
@@ -47,8 +51,8 @@ test('it looks for seeders in app namespace when module option is missing', func
   expect($mock->invoked)->toEqual(1);
 });
 
-test('it looks for named seeders in app namespace when module option is missing', function () {
-  $mock = createMockSeeder();
+test('it looks for named seeders in app namespace when module option is missing', function (): void {
+  $mock = createMockSeeder($this->app);
 
   $this->app->instance('Database\\Seeders\\CustomSeeder', $mock);
   $this->app->instance('CustomSeeder', $mock);
@@ -58,21 +62,20 @@ test('it looks for named seeders in app namespace when module option is missing'
   expect($mock->invoked)->toEqual(1);
 });
 
-function createMockSeeder()
+function createMockSeeder(Application $app): Seeder
 {
-  return new class
+  return new class($app) extends Seeder
   {
-    public $invoked = 0;
+    public int $invoked = 0;
 
-    public function __invoke()
+    public function __invoke(array $parameters = []): void
     {
       $this->invoked++;
     }
 
-    public function __call($method, $args)
+    public function run(): void
     {
-      // Just ignore everything else
-      return $this;
+      $this->invoked++;
     }
   };
 }

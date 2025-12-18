@@ -8,20 +8,20 @@ use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Console\Migrations\MigrateMakeCommand;
 use Illuminate\Filesystem\Filesystem;
 use Override;
-use Zen\Modulr\Concerns\ConfiguresCommands;
+use Zen\Modulr\Concerns\GeneratesModules;
 use Zen\Modulr\Support\ConfigStore;
 
 class MakeMigration extends MigrateMakeCommand
 {
-  use ConfiguresCommands;
+  use GeneratesModules;
 
   /**
-   * @return array|string|string[]
+   * @return array<int, string>|string
    *
    * @throws BindingResolutionException
    */
   #[Override]
-  protected function getMigrationPath()
+  protected function getMigrationPath(): array|string
   {
     $path = parent::getMigrationPath();
 

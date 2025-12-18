@@ -17,14 +17,18 @@ use Symfony\Component\Console\Terminal;
 use Zen\Modulr\Console\Commands\ClearCommand;
 use Zen\Modulr\Support\Registry;
 
+use function Laravel\Prompts\multiselect;
+use function Laravel\Prompts\select;
+use function Laravel\Prompts\text;
+
 class MakeModule extends Command
 {
   /**
    * @var string
    */
   protected $signature = 'modules:make
-		{name : The name of the module}
-		{--accept-namespace : Skip default namespace confirmation}
+    {name? : The name of the module}
+    {--accept-namespace : Skip default namespace confirmation}
     {--empty : Create an empty module directory and namespace}';
 
   /**
@@ -63,6 +67,63 @@ class MakeModule extends Command
    */
   protected string $composer_name;
 
+  /**
+   * Components selected by the user to generate
+   *
+   * @var array<string>
+   */
+  protected array $selected_components = [];
+
+  /**
+   * Selected controller type (resource, api, invokable, singleton, plain)
+   */
+  protected string $controller_type = 'resource';
+
+  /**
+   * Available controller types
+   *
+   * @var array<string, string>
+   */
+  protected array $controller_types = [
+    'resource' => 'Resource (index, create, store, show, edit, update, destroy)',
+    'api' => 'API Resource (index, store, show, update, destroy)',
+    'invokable' => 'Invokable (single __invoke method)',
+    'singleton' => 'Singleton Resource (show, edit, update)',
+    'plain' => 'Plain (empty controller)',
+  ];
+
+  /**
+   * Available components that can be generated
+   *
+   * @var array<string, string>
+   */
+  protected array $available_components = [
+    'model' => 'Model',
+    'controller' => 'Controller',
+    'migration' => 'Migration',
+    'factory' => 'Factory',
+    'seeder' => 'Seeder',
+    'request' => 'Form Request',
+    'resource' => 'API Resource',
+    'policy' => 'Policy',
+    'event' => 'Event',
+    'listener' => 'Listener',
+    'job' => 'Job',
+    'mail' => 'Mailable',
+    'notification' => 'Notification',
+    'observer' => 'Observer',
+    'rule' => 'Validation Rule',
+    'cast' => 'Cast',
+    'middleware' => 'Middleware',
+    'exception' => 'Exception',
+    'command' => 'Console Command',
+    'channel' => 'Broadcast Channel',
+    'provider' => 'Service Provider',
+    'test' => 'Test',
+    'routes' => 'Routes File',
+    'views' => 'Blade Views',
+  ];
+
   public function __construct(protected Filesystem $filesystem, protected Registry $module_registry)
   {
     parent::__construct();
@@ -73,14 +134,33 @@ class MakeModule extends Command
    */
   public function handle(): int
   {
-    $this->module_name = Str::kebab($this->argument('name'));
-    $this->class_name_prefix = Str::studly($this->argument('name'));
-    $this->module_namespace = config('modulr.modules_namespace', 'Modules');
-    $this->composer_namespace = config('modulr.modules_vendor') ?? Str::kebab($this->module_namespace);
+    $this->setUpStyles();
+
+    $argumentName = $this->argument('name');
+
+    if (! is_string($argumentName) || $argumentName === '') {
+      $argumentName = text(
+        label: 'What is the name of your module?',
+        placeholder: 'E.g. billing, user-management, inventory',
+        required: 'A module name is required.',
+        validate: fn (string $value): ?string => preg_match('/^[a-zA-Z][a-zA-Z0-9-]*$/', $value)
+          ? null
+          : 'Module name must start with a letter and contain only letters, numbers, and hyphens.',
+      );
+    }
+
+    $this->module_name = Str::kebab($argumentName);
+    $this->class_name_prefix = Str::studly($argumentName);
+
+    /** @var string $moduleNamespace */
+    $moduleNamespace = config('modulr.modules_namespace', 'Modules');
+    $this->module_namespace = $moduleNamespace;
+
+    /** @var string|null $modulesVendor */
+    $modulesVendor = config('modulr.modules_vendor');
+    $this->composer_namespace = $modulesVendor ?? Str::kebab($this->module_namespace);
     $this->composer_name = "$this->composer_namespace/$this->module_name";
     $this->base_path = $this->module_registry->getModulesPath().'/'.$this->module_name;
-
-    $this->setUpStyles();
 
     $this->newLine();
 
@@ -98,19 +178,150 @@ class MakeModule extends Command
 
       return 0;
     }
+
+    $this->promptForComponents();
+    $this->promptForComponentOptions();
+
     $this->writeStubs();
+
+    // Reload registry so the new module is available for component generation
+    $this->module_registry->reload();
+
+    $this->generateSelectedComponents();
 
     $this->updateCoreComposerConfig();
 
+    $this->runComposerUpdate();
+
     $this->call(ClearCommand::class);
 
-    $this->newLine();
-    $this->line("Please run <kbd>composer update $this->composer_name</kbd>");
-    $this->newLine();
-
-    $this->module_registry->reload();
-
     return 0;
+  }
+
+  protected function promptForComponents(): void
+  {
+    $defaults = ['provider', 'routes', 'views', 'migration'];
+
+    // Skip interactive prompt when running unit tests - use defaults
+    if ($this->laravel->runningUnitTests()) {
+      $this->selected_components = $defaults;
+
+      return;
+    }
+
+    /** @var array<string> $selected */
+    $selected = multiselect(
+      label: 'Which components would you like to generate?',
+      options: $this->available_components,
+      default: $defaults,
+      hint: 'Use space to select, enter to confirm.',
+    );
+
+    $this->selected_components = $selected;
+  }
+
+  protected function promptForComponentOptions(): void
+  {
+    // Skip interactive prompts when running unit tests
+    if ($this->laravel->runningUnitTests()) {
+      return;
+    }
+
+    $this->promptForControllerType();
+  }
+
+  protected function promptForControllerType(): void
+  {
+    if (! in_array('controller', $this->selected_components, true)) {
+      return;
+    }
+
+    /** @var string $selected */
+    $selected = select(
+      label: 'What type of controller would you like?',
+      options: $this->controller_types,
+      default: 'resource',
+    );
+
+    $this->controller_type = $selected;
+  }
+
+  protected function generateSelectedComponents(): void
+  {
+    if ($this->selected_components === []) {
+      return;
+    }
+
+    $this->title('Generating selected components');
+
+    foreach ($this->selected_components as $component) {
+      $this->generateComponent($component);
+    }
+
+    $this->newLine();
+  }
+
+  protected function generateComponent(string $component): void
+  {
+    $componentName = $this->class_name_prefix;
+
+    $commandMap = [
+      'model' => ['make:model', ['name' => $componentName]],
+      'controller' => ['make:controller', ['name' => "{$componentName}Controller", ...$this->getControllerOptions()]],
+      'factory' => ['make:factory', ['name' => "{$componentName}Factory"]],
+      'seeder' => ['make:seeder', ['name' => "{$componentName}Seeder"]],
+      'request' => ['make:request', ['name' => "Store{$componentName}Request"]],
+      'resource' => ['make:resource', ['name' => "{$componentName}Resource"]],
+      'policy' => ['make:policy', ['name' => "{$componentName}Policy"]],
+      'event' => ['make:event', ['name' => "{$componentName}Created"]],
+      'listener' => ['make:listener', ['name' => "{$componentName}CreatedListener"]],
+      'job' => ['make:job', ['name' => "Process{$componentName}"]],
+      'mail' => ['make:mail', ['name' => "{$componentName}Mail"]],
+      'notification' => ['make:notification', ['name' => "{$componentName}Notification"]],
+      'observer' => ['make:observer', ['name' => "{$componentName}Observer"]],
+      'rule' => ['make:rule', ['name' => "{$componentName}Rule"]],
+      'cast' => ['make:cast', ['name' => "{$componentName}Cast"]],
+      'middleware' => ['make:middleware', ['name' => "{$componentName}Middleware"]],
+      'exception' => ['make:exception', ['name' => "{$componentName}Exception"]],
+      'command' => ['make:command', ['name' => "{$componentName}Command"]],
+      'channel' => ['make:channel', ['name' => "{$componentName}Channel"]],
+      'provider' => ['make:provider', ['name' => "{$componentName}ServiceProvider"]],
+      'test' => ['make:test', ['name' => "{$componentName}Test"]],
+    ];
+
+    // Skip components handled by stubs (routes, views, migration)
+    if (in_array($component, ['routes', 'views', 'migration'], true)) {
+      return;
+    }
+
+    if (! isset($commandMap[$component])) {
+      return;
+    }
+
+    [$command, $arguments] = $commandMap[$component];
+
+    $this->callSilently($command, [
+      ...$arguments,
+      '--module' => $this->module_name,
+    ]);
+
+    $this->line(" - Generated <info>{$this->available_components[$component]}</info>");
+  }
+
+  /**
+   * Get the controller options based on the selected type.
+   *
+   * @return array<string, bool>
+   */
+  protected function getControllerOptions(): array
+  {
+    return match ($this->controller_type) {
+      'resource' => ['--resource' => true],
+      'api' => ['--api' => true],
+      'invokable' => ['--invokable' => true],
+      'singleton' => ['--singleton' => true],
+      default => [],
+    };
   }
 
   protected function shouldAbortToPublishConfig(): bool
@@ -142,10 +353,7 @@ class MakeModule extends Command
     return $this->confirm('Would you like to cancel and configure your module namespace first?', true);
   }
 
-  /**
-   * @return void
-   */
-  protected function ensureModulesDirectoryExists()
+  protected function ensureModulesDirectoryExists(): void
   {
     if (! $this->filesystem->isDirectory($this->base_path)) {
       $this->filesystem->makeDirectory($this->base_path, 0777, true);
@@ -153,13 +361,11 @@ class MakeModule extends Command
     }
   }
 
-  /**
-   * @return void
-   */
-  protected function writeStubs()
+  protected function writeStubs(): void
   {
     $this->title('Creating initial module files');
 
+    /** @var string $tests_base */
     $tests_base = config('modulr.tests_base', 'Tests\TestCase');
 
     $placeholders = [
@@ -176,11 +382,16 @@ class MakeModule extends Command
       'StubTestCaseBase' => class_basename($tests_base),
     ];
 
+    /** @var array<string> $search */
     $search = array_keys($placeholders);
+    /** @var array<string> $replace */
     $replace = array_values($placeholders);
 
     foreach ($this->getStubs() as $destination => $stub_file) {
       $contents = file_get_contents($stub_file);
+      if ($contents === false) {
+        continue;
+      }
       $destination = str_replace($search, $replace, $destination);
       $filename = "$this->base_path/$destination";
 
@@ -209,12 +420,10 @@ class MakeModule extends Command
   }
 
   /**
-   * @return void
-   *
    * @throws ParsingException
    * @throws Exception
    */
-  protected function updateCoreComposerConfig()
+  protected function updateCoreComposerConfig(): void
   {
     $this->title('Updating application composer.json file');
 
@@ -222,9 +431,13 @@ class MakeModule extends Command
     // we're updating the composer file so that we're sure we update
     // the correct composer.json file (we'll restore CWD at the end)
     $original_working_dir = getcwd();
+    if ($original_working_dir === false) {
+      $original_working_dir = $this->laravel->basePath();
+    }
     chdir($this->laravel->basePath());
 
     $jsonFile = new JsonFile(Factory::getComposerFile());
+    /** @var array<string, mixed> $definition */
     $definition = $jsonFile->read();
 
     if (! isset($definition['repositories'])) {
@@ -235,9 +448,11 @@ class MakeModule extends Command
       $definition['require'] = [];
     }
 
+    /** @var string $modulesDirectory */
+    $modulesDirectory = config('modulr.modules_directory', 'modules');
     $module_config = [
       'type' => 'path',
-      'url' => str_replace('\\', '/', config('modulr.modules_directory', 'modules')).'/*',
+      'url' => str_replace('\\', '/', $modulesDirectory).'/*',
       'options' => [
         'symlink' => true,
       ],
@@ -245,26 +460,31 @@ class MakeModule extends Command
 
     $has_changes = false;
 
-    $repository_already_exists = collect($definition['repositories'])
+    /** @var array<int|string, array{type: string, url: string, options?: array<string, mixed>}> $repositories */
+    $repositories = $definition['repositories'];
+    $repository_already_exists = collect($repositories)
       ->contains(fn (array $repository): bool => $repository['url'] === $module_config['url']);
 
     if ($repository_already_exists === false) {
       $this->line(" - Adding path repository for <info>{$module_config['url']}</info>");
       $has_changes = true;
 
-      if (Arr::isAssoc($definition['repositories'])) {
-        $definition['repositories'][$this->module_name] = $module_config;
+      if (Arr::isAssoc($repositories)) {
+        $repositories[$this->module_name] = $module_config;
       } else {
-        $definition['repositories'][] = $module_config;
+        $repositories[] = $module_config;
       }
+      $definition['repositories'] = $repositories;
     }
 
-    if (! isset($definition['require'][$this->composer_name])) {
+    /** @var array<string, string> $require */
+    $require = $definition['require'];
+    if (! isset($require[$this->composer_name])) {
       $this->line(" - Adding require statement for <info>$this->composer_name:*</info>");
       $has_changes = true;
 
-      $definition['require']["$this->composer_namespace/$this->module_name"] = '*';
-      $definition['require'] = $this->sortComposerPackages($definition['require']);
+      $require["$this->composer_namespace/$this->module_name"] = '*';
+      $definition['require'] = $this->sortComposerPackages($require);
     }
 
     if ($has_changes) {
@@ -279,9 +499,13 @@ class MakeModule extends Command
     $this->newLine();
   }
 
+  /**
+   * @param  array<string, string>  $packages
+   * @return array<string, string>
+   */
   protected function sortComposerPackages(array $packages): array
   {
-    $prefix = (fn ($requirement): array|string|null => preg_replace(
+    $prefix = (fn (string $requirement): ?string => preg_replace(
       [
         '/^php$/',
         '/^hhvm-/',
@@ -298,18 +522,15 @@ class MakeModule extends Command
         '4-$0',
         '5-$0',
       ],
-      (string) $requirement
+      $requirement
     ));
 
-    uksort($packages, fn ($a, $b): int => strnatcmp($prefix($a), $prefix($b)));
+    uksort($packages, fn (string $a, string $b): int => strnatcmp((string) $prefix($a), (string) $prefix($b)));
 
     return $packages;
   }
 
-  /**
-   * @return void
-   */
-  protected function setUpStyles()
+  protected function setUpStyles(): void
   {
     $outputFormatter = $this->getOutput()->getFormatter();
 
@@ -326,14 +547,21 @@ class MakeModule extends Command
   /**
    * @param  int  $count
    */
-  public function newLine($count = 1): void
+  public function newLine($count = 1): static // @pest-ignore-type
   {
     $this->getOutput()->newLine($count);
+
+    return $this;
   }
 
+  /**
+   * @return array<string, string>
+   */
   protected function getStubs(): array
   {
-    if (is_array($custom_stubs = config('modulr.stubs'))) {
+    $custom_stubs = config('modulr.stubs');
+    if (is_array($custom_stubs)) {
+      /** @var array<string, string> $custom_stubs */
       return $custom_stubs;
     }
 
@@ -341,24 +569,91 @@ class MakeModule extends Command
         ? 'composer-stub-v7.json'
         : 'composer-stub-latest.json';
 
-    return [
+    // Base stubs always included
+    $stubs = [
       'composer.json' => $this->pathToStub($composer_stub),
-      'src/Providers/StubClassNamePrefixServiceProvider.php' => $this->pathToStub('ServiceProvider.php'),
-      'tests/StubClassNamePrefixServiceProviderTest.php' => $this->pathToStub('ServiceProviderTest.php'),
-      'database/migrations/StubMigrationPrefix_set_up_StubModuleName_module.php' => $this->pathToStub('migration.php'),
-      'routes/StubModuleName-routes.php' => $this->pathToStub('web-routes.php'),
-      'resources/views/index.blade.php' => $this->pathToStub('view.blade.php'),
-      'resources/views/create.blade.php' => $this->pathToStub('view.blade.php'),
-      'resources/views/show.blade.php' => $this->pathToStub('view.blade.php'),
-      'resources/views/edit.blade.php' => $this->pathToStub('view.blade.php'),
-      'database/factories/.gitkeep' => $this->pathToStub('.gitkeep'),
-      'database/migrations/.gitkeep' => $this->pathToStub('.gitkeep'),
-      'database/'.$this->seedersDirectory().'/.gitkeep' => $this->pathToStub('.gitkeep'),
     ];
+
+    // Service provider (if selected or for backwards compatibility when empty)
+    if ($this->isComponentSelected('provider')) {
+      $stubs['src/Providers/StubClassNamePrefixServiceProvider.php'] = $this->pathToStub('ServiceProvider.php');
+    }
+
+    // Test for service provider (if provider and test are both selected)
+    if ($this->isComponentSelected('provider') && $this->isComponentSelected('test')) {
+      $stubs['tests/StubClassNamePrefixServiceProviderTest.php'] = $this->pathToStub('ServiceProviderTest.php');
+    }
+
+    // Migration (if selected)
+    if ($this->isComponentSelected('migration')) {
+      $stubs['database/migrations/StubMigrationPrefix_set_up_StubModuleName_module.php'] = $this->pathToStub('migration.php');
+      $stubs['database/migrations/.gitkeep'] = $this->pathToStub('.gitkeep');
+    }
+
+    // Routes (if selected)
+    if ($this->isComponentSelected('routes')) {
+      $stubs['routes/StubModuleName-routes.php'] = $this->pathToStub('web-routes.php');
+    }
+
+    // Views (if selected)
+    if ($this->isComponentSelected('views')) {
+      $stubs['resources/views/index.blade.php'] = $this->pathToStub('view.blade.php');
+      $stubs['resources/views/create.blade.php'] = $this->pathToStub('view.blade.php');
+      $stubs['resources/views/show.blade.php'] = $this->pathToStub('view.blade.php');
+      $stubs['resources/views/edit.blade.php'] = $this->pathToStub('view.blade.php');
+    }
+
+    // Factory directory (if factory is selected)
+    if ($this->isComponentSelected('factory')) {
+      $stubs['database/factories/.gitkeep'] = $this->pathToStub('.gitkeep');
+    }
+
+    // Seeder directory (if seeder is selected)
+    if ($this->isComponentSelected('seeder')) {
+      $stubs['database/'.$this->seedersDirectory().'/.gitkeep'] = $this->pathToStub('.gitkeep');
+    }
+
+    return $stubs;
   }
 
-  protected function pathToStub($filename): string
+  protected function isComponentSelected(string $component): bool
+  {
+    // If no components were selected (e.g., --empty flag or non-interactive), include all defaults
+    if ($this->selected_components === []) {
+      return true;
+    }
+
+    return in_array($component, $this->selected_components, true);
+  }
+
+  protected function pathToStub(string $filename): string
   {
     return str_replace('\\', '/', dirname(__DIR__, 4))."/stubs/$filename";
+  }
+
+  protected function runComposerUpdate(): void
+  {
+    // Skip in unit tests
+    if ($this->laravel->runningUnitTests()) {
+      return;
+    }
+
+    $this->info('Running composer update...');
+    $this->newLine();
+
+    $process = proc_open(
+      'composer update',
+      [
+        0 => STDIN,
+        1 => STDOUT,
+        2 => STDERR,
+      ],
+      $pipes,
+      $this->laravel->basePath()
+    );
+
+    if (is_resource($process)) {
+      proc_close($process);
+    }
   }
 }

@@ -16,18 +16,22 @@ class MakeCommand extends ConsoleMakeCommand
   use ConfiguresCommands;
 
   /**
+   * @param  string  $stub
+   * @param  string  $name
+   *
    * @throws BindingResolutionException
    */
   #[Override]
-  protected function replaceClass($stub, $name): array|string
+  protected function replaceClass($stub, $name): string // @pest-ignore-type
   {
     $stub = parent::replaceClass($stub, $name);
 
+    /** @var string|null $command */
     $command = $this->option('command');
     $module = $this->module();
 
     if ($module instanceof ConfigStore) {
-      if ($command) {
+      if ($command !== null && $command !== '') {
         $stub = str_replace('command:name', $command, $stub);
       } else {
         $cli_name = Str::of($name)->classBasename()->kebab();

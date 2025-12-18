@@ -13,8 +13,8 @@ use Zen\Modulr\Support\Registry;
  * @method static ConfigStore|null module(string $name)
  * @method static ConfigStore|null moduleForPath(string $path)
  * @method static ConfigStore|null moduleForClass(string $fqcn)
- * @method static Collection modules()
- * @method static Collection reload()
+ * @method static Collection<string, ConfigStore> modules()
+ * @method static Collection<string, ConfigStore> reload()
  *
  * @see Registry
  */

@@ -14,7 +14,7 @@ trait WritesToAppFilesystem
   #[Before]
   public function cleanUpAppModules(): void
   {
-    $this->beforeApplicationDestroyed(function () {
+    $this->beforeApplicationDestroyed(function (): void {
       $modules_path = static::applicationBasePath().'/'.$this->last_test_modules_root;
       $this->filesystem()->deleteDirectory($modules_path);
     });
@@ -60,7 +60,7 @@ trait WritesToAppFilesystem
   protected function normalizeDirectorySeparators(string $path): string
   {
     if (($path = trim($path, '/')) && (substr($path, 1, 1) !== ':')) {
-      $path = '/'.$path;
+      return '/'.$path;
     }
 
     return $path;

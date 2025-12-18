@@ -16,12 +16,12 @@ class MakeModel extends ModelMakeCommand
   use ConfiguresCommands;
 
   /**
-   * @return string
+   * @param  string  $rootNamespace
    *
    * @throws BindingResolutionException
    */
   #[Override]
-  protected function getDefaultNamespace($rootNamespace)
+  protected function getDefaultNamespace($rootNamespace): string // @pest-ignore-type
   {
     if (($module = $this->module()) instanceof ConfigStore) {
       $rootNamespace = rtrim((string) $module->namespaces->first(), '\\');
@@ -38,12 +38,14 @@ class MakeModel extends ModelMakeCommand
    * @throws BindingResolutionException
    */
   #[Override]
-  protected function buildFactoryReplacements()
+  protected function buildFactoryReplacements(): array
   {
     $replacements = [];
 
     if ($this->option('factory') || $this->option('all')) {
-      $modelPath = Str::of($this->argument('name'))->studly()->replace('/', '\\')->toString();
+      /** @var string $argumentName */
+      $argumentName = $this->argument('name');
+      $modelPath = Str::of($argumentName)->studly()->replace('/', '\\')->toString();
 
       // Use module factory namespace if we're in a module
       if (($module = $this->module()) instanceof ConfigStore) {

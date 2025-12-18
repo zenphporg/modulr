@@ -2,12 +2,14 @@
 
 // TestCase applied via Pest.php
 use Zen\Modulr\Console\Commands\Make\MakeModel;
+use Zen\Modulr\Tests\Feature\Concerns\TestsMakeCommands;
+use Zen\Modulr\Tests\Feature\Concerns\WritesToAppFilesystem;
 
-uses(\Zen\Modulr\Tests\Feature\Concerns\TestsMakeCommands::class);
+uses(TestsMakeCommands::class);
 
-uses(\Zen\Modulr\Tests\Feature\Concerns\WritesToAppFilesystem::class);
+uses(WritesToAppFilesystem::class);
 
-test('it overrides the default command', function () {
+test('it overrides the default command', function (): void {
   $this->requiresLaravelVersion('11.0');
 
   $this->artisan('make:model', ['--help' => true])
@@ -15,7 +17,7 @@ test('it overrides the default command', function () {
     ->assertExitCode(0);
 });
 
-test('it scaffolds a model in the module when module option is set', function () {
+test('it scaffolds a model in the module when module option is set', function (): void {
   $command = MakeModel::class;
   $arguments = ['name' => 'TestModel'];
   $expected_path = 'src/Models/TestModel.php';
@@ -27,7 +29,7 @@ test('it scaffolds a model in the module when module option is set', function ()
   $this->assertModuleCommandResults($command, $arguments, $expected_path, $expected_substrings);
 });
 
-test('it scaffolds a model in the app when module option is missing', function () {
+test('it scaffolds a model in the app when module option is missing', function (): void {
   $command = MakeModel::class;
   $arguments = ['name' => 'TestModel'];
   $expected_path = 'app/Models/TestModel.php';
