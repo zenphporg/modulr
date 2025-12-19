@@ -1,5 +1,6 @@
 <?php
 
+use Zen\Modulr\Console\Commands\Make\MakeMigration;
 use Zen\Modulr\Providers\CommandsServiceProvider;
 
 test('it extends service provider', function (): void {
@@ -28,4 +29,18 @@ test('it registers in application', function (): void {
   expect(class_exists(CommandsServiceProvider::class))->toBeTrue();
   $provider = new CommandsServiceProvider($this->app);
   expect($provider)->toBeInstanceOf(CommandsServiceProvider::class);
+});
+
+test('it resolves migration command singleton', function (): void {
+  $provider = new CommandsServiceProvider($this->app);
+
+  // Use reflection to call the protected method
+  $reflection = new ReflectionClass($provider);
+  $method = $reflection->getMethod('registerMigrationCommandOverrides');
+  $method->invoke($provider);
+
+  // Resolve the command.migrate.make singleton to trigger the closure
+  $command = $this->app->make('command.migrate.make');
+
+  expect($command)->toBeInstanceOf(MakeMigration::class);
 });

@@ -66,3 +66,43 @@ test('it can handle method execution', function (): void {
     unlink($tempFile);
   }
 });
+
+test('it throws exception when file cannot be read', function (): void {
+  $registry = new Registry('/path/to/modules', '');
+  $writer = new ProjectImlWriter('/non/existent/path.xml', $registry);
+
+  $thrown = false;
+
+  try {
+    @$writer->write();
+  } catch (RuntimeException $e) {
+    $thrown = true;
+    expect($e->getMessage())->toContain('Could not read config file');
+  }
+
+  expect($thrown)->toBeTrue();
+});
+
+test('it throws exception when xml cannot be parsed', function (): void {
+  // Create a file with invalid XML
+  $tempFile = sys_get_temp_dir().'/invalid_xml_'.uniqid().'.xml';
+  file_put_contents($tempFile, 'not valid xml content');
+
+  try {
+    $registry = new Registry('/path/to/modules', '');
+    $writer = new ProjectImlWriter($tempFile, $registry);
+
+    $thrown = false;
+
+    try {
+      @$writer->write();
+    } catch (RuntimeException $e) {
+      $thrown = true;
+      expect($e->getMessage())->toContain('Could not parse XML');
+    }
+
+    expect($thrown)->toBeTrue();
+  } finally {
+    unlink($tempFile);
+  }
+});

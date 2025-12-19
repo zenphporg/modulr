@@ -1,6 +1,6 @@
 <?php
 
-use Zen\Modulr\Providers\ModulrServiceProvider;
+use Zen\Modulr\ModulrServiceProvider;
 use Zen\Modulr\Support\AutoDiscoveryHelper;
 use Zen\Modulr\Support\Registry;
 

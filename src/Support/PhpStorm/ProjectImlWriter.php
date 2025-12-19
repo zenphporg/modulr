@@ -63,7 +63,7 @@ class ProjectImlWriter extends ConfigWriter
       throw new RuntimeException("Could not read config file: {$this->config_path}");
     }
 
-    $config = simplexml_load_string($contents);
+    $config = @simplexml_load_string($contents);
     if ($config === false) {
       throw new RuntimeException("Could not parse XML from: {$this->config_path}");
     }

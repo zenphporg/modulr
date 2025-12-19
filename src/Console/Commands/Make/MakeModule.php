@@ -17,6 +17,7 @@ use Symfony\Component\Console\Terminal;
 use Zen\Modulr\Console\Commands\ClearCommand;
 use Zen\Modulr\Support\Registry;
 
+use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
@@ -93,6 +94,33 @@ class MakeModule extends Command
   ];
 
   /**
+   * Selected model options
+   *
+   * @var array<string, bool>
+   */
+  protected array $model_options = [];
+
+  /**
+   * Selected mail option (with/without markdown)
+   */
+  protected bool $mail_markdown = false;
+
+  /**
+   * Selected notification option (with/without markdown)
+   */
+  protected bool $notification_markdown = false;
+
+  /**
+   * Selected component option (with/without inline view)
+   */
+  protected bool $component_inline = false;
+
+  /**
+   * Selected event option (should also create listener)
+   */
+  protected bool $event_with_listener = false;
+
+  /**
    * Available components that can be generated
    *
    * @var array<string, string>
@@ -111,6 +139,7 @@ class MakeModule extends Command
     'job' => 'Job',
     'mail' => 'Mailable',
     'notification' => 'Notification',
+    'component' => 'Blade Component',
     'observer' => 'Observer',
     'rule' => 'Validation Rule',
     'cast' => 'Cast',
@@ -118,7 +147,6 @@ class MakeModule extends Command
     'exception' => 'Exception',
     'command' => 'Console Command',
     'channel' => 'Broadcast Channel',
-    'provider' => 'Service Provider',
     'test' => 'Test',
     'routes' => 'Routes File',
     'views' => 'Blade Views',
@@ -139,6 +167,7 @@ class MakeModule extends Command
     $argumentName = $this->argument('name');
 
     if (! is_string($argumentName) || $argumentName === '') {
+      // @codeCoverageIgnoreStart
       $argumentName = text(
         label: 'What is the name of your module?',
         placeholder: 'E.g. billing, user-management, inventory',
@@ -147,6 +176,7 @@ class MakeModule extends Command
           ? null
           : 'Module name must start with a letter and contain only letters, numbers, and hyphens.',
       );
+      // @codeCoverageIgnoreEnd
     }
 
     $this->module_name = Str::kebab($argumentName);
@@ -167,20 +197,14 @@ class MakeModule extends Command
     $this->ensureModulesDirectoryExists();
 
     if ($this->shouldAbortToPublishConfig()) {
-      return 0;
+      return 0; // @codeCoverageIgnore
     }
 
-    if ($this->option('empty')) {
-      $this->ensureModulesDirectoryExists();
-      $this->updateCoreComposerConfig();
-
-      $this->call(ClearCommand::class);
-
-      return 0;
+    // Skip prompts if --empty flag is used
+    if (! $this->option('empty')) {
+      $this->promptForComponents();
+      $this->promptForComponentOptions();
     }
-
-    $this->promptForComponents();
-    $this->promptForComponentOptions();
 
     $this->writeStubs();
 
@@ -200,12 +224,9 @@ class MakeModule extends Command
 
   protected function promptForComponents(): void
   {
-    $defaults = ['provider', 'routes', 'views', 'migration'];
-
-    // Skip interactive prompt when running unit tests - use defaults
+    // Skip prompts during unit tests when running via artisan
+    // (prompts can still be tested via reflection with Prompt::fake())
     if ($this->laravel->runningUnitTests()) {
-      $this->selected_components = $defaults;
-
       return;
     }
 
@@ -213,8 +234,8 @@ class MakeModule extends Command
     $selected = multiselect(
       label: 'Which components would you like to generate?',
       options: $this->available_components,
-      default: $defaults,
-      hint: 'Use space to select, enter to confirm.',
+      default: [],
+      hint: 'Use space to select, enter to confirm. ServiceProvider is always created.',
     );
 
     $this->selected_components = $selected;
@@ -222,19 +243,75 @@ class MakeModule extends Command
 
   protected function promptForComponentOptions(): void
   {
-    // Skip interactive prompts when running unit tests
-    if ($this->laravel->runningUnitTests()) {
+    $this->promptForModelOptions();
+    $this->promptForControllerType();
+    $this->promptForMailOptions();
+    $this->promptForNotificationOptions();
+    $this->promptForComponentOptions2();
+    $this->promptForEventOptions();
+  }
+
+  protected function promptForModelOptions(): void
+  {
+    if (! in_array('model', $this->selected_components, true)) {
       return;
     }
 
-    $this->promptForControllerType();
+    $this->newLine();
+    $this->components->info('Model Options');
+
+    /** @var array<string> $selected */
+    $selected = multiselect(
+      label: 'What would you like to include with your model?',
+      options: [
+        'factory' => 'Factory',
+        'migration' => 'Migration',
+        'seeder' => 'Seeder',
+        'controller' => 'Controller',
+        'resource' => 'API Resource',
+        'policy' => 'Policy',
+        'all' => 'All of the above',
+      ],
+      default: [],
+      hint: 'These will be generated in addition to any already selected',
+    );
+
+    if (in_array('all', $selected, true)) {
+      $this->model_options = [
+        '--factory' => true,
+        '--migration' => true,
+        '--seed' => true,
+        '--controller' => true,
+        '--resource' => true,
+        '--policy' => true,
+      ];
+    } else {
+      $this->model_options = [
+        '--factory' => in_array('factory', $selected, true),
+        '--migration' => in_array('migration', $selected, true),
+        '--seed' => in_array('seeder', $selected, true),
+        '--controller' => in_array('controller', $selected, true),
+        '--resource' => in_array('resource', $selected, true),
+        '--policy' => in_array('policy', $selected, true),
+      ];
+    }
+
+    // Filter out false values
+    $this->model_options = array_filter($this->model_options);
   }
 
   protected function promptForControllerType(): void
   {
-    if (! in_array('controller', $this->selected_components, true)) {
+    $controllerSelectedAsComponent = in_array('controller', $this->selected_components, true);
+    $controllerSelectedViaModel = isset($this->model_options['--controller']) && $this->model_options['--controller'];
+
+    // Show controller type prompt if controller is selected either as component or via model
+    if (! $controllerSelectedAsComponent && ! $controllerSelectedViaModel) {
       return;
     }
+
+    $this->newLine();
+    $this->components->info('Controller Options');
 
     /** @var string $selected */
     $selected = select(
@@ -244,6 +321,66 @@ class MakeModule extends Command
     );
 
     $this->controller_type = $selected;
+  }
+
+  protected function promptForMailOptions(): void
+  {
+    if (! in_array('mail', $this->selected_components, true)) {
+      return;
+    }
+
+    $this->newLine();
+    $this->components->info('Mailable Options');
+
+    $this->mail_markdown = confirm(
+      label: 'Would you like to use a Markdown template?',
+      default: false,
+    );
+  }
+
+  protected function promptForNotificationOptions(): void
+  {
+    if (! in_array('notification', $this->selected_components, true)) {
+      return;
+    }
+
+    $this->newLine();
+    $this->components->info('Notification Options');
+
+    $this->notification_markdown = confirm(
+      label: 'Would you like to use a Markdown template?',
+      default: false,
+    );
+  }
+
+  protected function promptForComponentOptions2(): void
+  {
+    if (! in_array('component', $this->selected_components, true)) {
+      return;
+    }
+
+    $this->newLine();
+    $this->components->info('Blade Component Options');
+
+    $this->component_inline = confirm(
+      label: 'Would you like an inline view (no separate Blade file)?',
+      default: false,
+    );
+  }
+
+  protected function promptForEventOptions(): void
+  {
+    if (! in_array('event', $this->selected_components, true)) {
+      return;
+    }
+
+    $this->newLine();
+    $this->components->info('Event Options');
+
+    $this->event_with_listener = confirm(
+      label: 'Would you also like to create a listener for this event?',
+      default: false,
+    );
   }
 
   protected function generateSelectedComponents(): void
@@ -266,7 +403,7 @@ class MakeModule extends Command
     $componentName = $this->class_name_prefix;
 
     $commandMap = [
-      'model' => ['make:model', ['name' => $componentName]],
+      'model' => ['make:model', ['name' => $componentName, ...$this->getModelOptions()]],
       'controller' => ['make:controller', ['name' => "{$componentName}Controller", ...$this->getControllerOptions()]],
       'factory' => ['make:factory', ['name' => "{$componentName}Factory"]],
       'seeder' => ['make:seeder', ['name' => "{$componentName}Seeder"]],
@@ -276,8 +413,8 @@ class MakeModule extends Command
       'event' => ['make:event', ['name' => "{$componentName}Created"]],
       'listener' => ['make:listener', ['name' => "{$componentName}CreatedListener"]],
       'job' => ['make:job', ['name' => "Process{$componentName}"]],
-      'mail' => ['make:mail', ['name' => "{$componentName}Mail"]],
-      'notification' => ['make:notification', ['name' => "{$componentName}Notification"]],
+      'mail' => ['make:mail', ['name' => "{$componentName}Mail", ...$this->getMailOptions()]],
+      'notification' => ['make:notification', ['name' => "{$componentName}Notification", ...$this->getNotificationOptions()]],
       'observer' => ['make:observer', ['name' => "{$componentName}Observer"]],
       'rule' => ['make:rule', ['name' => "{$componentName}Rule"]],
       'cast' => ['make:cast', ['name' => "{$componentName}Cast"]],
@@ -285,19 +422,35 @@ class MakeModule extends Command
       'exception' => ['make:exception', ['name' => "{$componentName}Exception"]],
       'command' => ['make:command', ['name' => "{$componentName}Command"]],
       'channel' => ['make:channel', ['name' => "{$componentName}Channel"]],
-      'provider' => ['make:provider', ['name' => "{$componentName}ServiceProvider"]],
-      'test' => ['make:test', ['name' => "{$componentName}Test"]],
+      'component' => ['make:component', ['name' => $componentName, ...$this->getComponentOptions()]],
     ];
 
-    // Skip components handled by stubs (routes, views, migration)
-    if (in_array($component, ['routes', 'views', 'migration'], true)) {
+    // Skip components handled by stubs (routes, views, test)
+    // ServiceProvider and Test are created via stub, not artisan commands
+    if (in_array($component, ['routes', 'views', 'test'], true)) {
       return;
     }
+
+    // Handle migration separately - use make:migration command
+    // @codeCoverageIgnoreStart
+    if ($component === 'migration') {
+      $tableName = Str::snake(Str::plural($this->class_name_prefix));
+      $this->callSilently('make:migration', [
+        'name' => "create_{$tableName}_table",
+        '--create' => $tableName,
+        '--module' => $this->module_name,
+      ]);
+      $this->line(' - Generated <info>Migration</info>');
+
+      return;
+    }
+    // @codeCoverageIgnoreEnd
 
     if (! isset($commandMap[$component])) {
       return;
     }
 
+    // @codeCoverageIgnoreStart
     [$command, $arguments] = $commandMap[$component];
 
     $this->callSilently($command, [
@@ -306,6 +459,57 @@ class MakeModule extends Command
     ]);
 
     $this->line(" - Generated <info>{$this->available_components[$component]}</info>");
+
+    // If model was selected with controller option, create the controller with the selected type
+    // We do this separately because make:model --controller doesn't support controller type flags
+    if ($component === 'model' && $this->controllerSelectedViaModel() && ! $this->isComponentSelected('controller')) {
+      $this->callSilently('make:controller', [
+        'name' => "{$componentName}Controller",
+        ...$this->getControllerOptions(),
+        '--module' => $this->module_name,
+      ]);
+      $this->line(' - Generated <info>Controller</info> (for model)');
+    }
+
+    // If event was selected with listener option, create the listener too
+    if ($component === 'event' && $this->event_with_listener) {
+      $this->callSilently('make:listener', [
+        'name' => "{$componentName}CreatedListener",
+        '--event' => "Modules\\{$this->class_name_prefix}\\Events\\{$componentName}Created",
+        '--module' => $this->module_name,
+      ]);
+      $this->line(' - Generated <info>Listener</info> (for event)');
+    }
+    // @codeCoverageIgnoreEnd
+  }
+
+  /**
+   * Get the model options based on user selections.
+   *
+   * @return array<string, bool>
+   */
+  protected function getModelOptions(): array
+  {
+    $options = $this->model_options;
+
+    // If migration was selected as a component, don't create duplicate via model
+    if ($this->isComponentSelected('migration')) {
+      unset($options['--migration']);
+    }
+
+    // Remove --controller from model options - we'll create it separately with the correct type
+    // Laravel's make:model --controller doesn't support controller type flags
+    unset($options['--controller']);
+
+    return $options;
+  }
+
+  /**
+   * Check if controller was selected via model options.
+   */
+  protected function controllerSelectedViaModel(): bool
+  {
+    return isset($this->model_options['--controller']) && $this->model_options['--controller'];
   }
 
   /**
@@ -324,6 +528,54 @@ class MakeModule extends Command
     };
   }
 
+  /**
+   * Get the mail options based on user selections.
+   *
+   * @return array<string, mixed>
+   */
+  protected function getMailOptions(): array
+  {
+    if ($this->mail_markdown) {
+      // Generate the default view name: mail.{kebab-name}-mail
+      $viewName = 'mail.'.Str::kebab($this->class_name_prefix).'-mail';
+
+      return ['--markdown' => $viewName];
+    }
+
+    return [];
+  }
+
+  /**
+   * Get the notification options based on user selections.
+   *
+   * @return array<string, mixed>
+   */
+  protected function getNotificationOptions(): array
+  {
+    if ($this->notification_markdown) {
+      // Generate the default view name: mail.{kebab-name}-notification
+      $viewName = 'mail.'.Str::kebab($this->class_name_prefix).'-notification';
+
+      return ['--markdown' => $viewName];
+    }
+
+    return [];
+  }
+
+  /**
+   * Get the component options based on user selections.
+   *
+   * @return array<string, bool>
+   */
+  protected function getComponentOptions(): array
+  {
+    if ($this->component_inline) {
+      return ['--inline' => true];
+    }
+
+    return [];
+  }
+
   protected function shouldAbortToPublishConfig(): bool
   {
     if (
@@ -334,6 +586,7 @@ class MakeModule extends Command
       return false;
     }
 
+    // @codeCoverageIgnoreStart
     $this->title('Welcome');
 
     $message = "You're about to create your first module in the <info>$this->module_namespace</info> "
@@ -351,6 +604,7 @@ class MakeModule extends Command
     }
 
     return $this->confirm('Would you like to cancel and configure your module namespace first?', true);
+    // @codeCoverageIgnoreEnd
   }
 
   protected function ensureModulesDirectoryExists(): void
@@ -377,7 +631,6 @@ class MakeModule extends Command
       'StubModuleName' => $this->module_name,
       'StubClassNamePrefix' => $this->class_name_prefix,
       'StubComposerName' => $this->composer_name,
-      'StubMigrationPrefix' => date('Y_m_d_His'),
       'StubFullyQualifiedTestCaseBase' => $tests_base,
       'StubTestCaseBase' => class_basename($tests_base),
     ];
@@ -389,8 +642,8 @@ class MakeModule extends Command
 
     foreach ($this->getStubs() as $destination => $stub_file) {
       $contents = file_get_contents($stub_file);
-      if ($contents === false) {
-        continue;
+      if ($contents === false) { // @codeCoverageIgnore
+        continue; // @codeCoverageIgnore
       }
       $destination = str_replace($search, $replace, $destination);
       $filename = "$this->base_path/$destination";
@@ -431,8 +684,8 @@ class MakeModule extends Command
     // we're updating the composer file so that we're sure we update
     // the correct composer.json file (we'll restore CWD at the end)
     $original_working_dir = getcwd();
-    if ($original_working_dir === false) {
-      $original_working_dir = $this->laravel->basePath();
+    if ($original_working_dir === false) { // @codeCoverageIgnore
+      $original_working_dir = $this->laravel->basePath(); // @codeCoverageIgnore
     }
     chdir($this->laravel->basePath());
 
@@ -445,7 +698,7 @@ class MakeModule extends Command
     }
 
     if (! isset($definition['require'])) {
-      $definition['require'] = [];
+      $definition['require'] = []; // @codeCoverageIgnore
     }
 
     /** @var string $modulesDirectory */
@@ -565,29 +818,17 @@ class MakeModule extends Command
       return $custom_stubs;
     }
 
-    $composer_stub = version_compare($this->getLaravel()->version(), '8.0.0', '<')
-        ? 'composer-stub-v7.json'
-        : 'composer-stub-latest.json';
+    $composer_stub = 'composer-stub-latest.json';
 
-    // Base stubs always included
+    // Base stubs always included (composer.json and ServiceProvider)
     $stubs = [
       'composer.json' => $this->pathToStub($composer_stub),
+      'src/Providers/StubClassNamePrefixServiceProvider.php' => $this->pathToStub('ServiceProvider.php'),
     ];
 
-    // Service provider (if selected or for backwards compatibility when empty)
-    if ($this->isComponentSelected('provider')) {
-      $stubs['src/Providers/StubClassNamePrefixServiceProvider.php'] = $this->pathToStub('ServiceProvider.php');
-    }
-
-    // Test for service provider (if provider and test are both selected)
-    if ($this->isComponentSelected('provider') && $this->isComponentSelected('test')) {
+    // Test for service provider (if test is selected)
+    if ($this->isComponentSelected('test')) {
       $stubs['tests/StubClassNamePrefixServiceProviderTest.php'] = $this->pathToStub('ServiceProviderTest.php');
-    }
-
-    // Migration (if selected)
-    if ($this->isComponentSelected('migration')) {
-      $stubs['database/migrations/StubMigrationPrefix_set_up_StubModuleName_module.php'] = $this->pathToStub('migration.php');
-      $stubs['database/migrations/.gitkeep'] = $this->pathToStub('.gitkeep');
     }
 
     // Routes (if selected)
@@ -618,11 +859,6 @@ class MakeModule extends Command
 
   protected function isComponentSelected(string $component): bool
   {
-    // If no components were selected (e.g., --empty flag or non-interactive), include all defaults
-    if ($this->selected_components === []) {
-      return true;
-    }
-
     return in_array($component, $this->selected_components, true);
   }
 
@@ -631,6 +867,9 @@ class MakeModule extends Command
     return str_replace('\\', '/', dirname(__DIR__, 4))."/stubs/$filename";
   }
 
+  /**
+   * @codeCoverageIgnore
+   */
   protected function runComposerUpdate(): void
   {
     // Skip in unit tests

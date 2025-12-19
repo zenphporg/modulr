@@ -50,7 +50,7 @@ class SyncCommand extends Command
     /** @var string $modules_directory */
     $modules_directory = config('modulr.modules_directory', 'modules');
 
-    $config = simplexml_load_string($this->filesystem->get($config_path));
+    $config = @simplexml_load_string($this->filesystem->get($config_path));
     if ($config === false) {
       $this->error('Failed to parse phpunit.xml file. Skipping PHPUnit configuration.');
 

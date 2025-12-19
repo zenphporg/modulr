@@ -1,7 +1,10 @@
 <?php
 
 // TestCase applied via Pest.php
+use Zen\Modulr\Console\Commands\Make\MakeEvent;
 use Zen\Modulr\Console\Commands\Make\MakeListener;
+use Zen\Modulr\Console\Commands\Make\MakeModule;
+use Zen\Modulr\Support\Registry;
 use Zen\Modulr\Tests\Feature\Concerns\TestsMakeCommands;
 use Zen\Modulr\Tests\Feature\Concerns\WritesToAppFilesystem;
 
@@ -39,4 +42,34 @@ test('it scaffolds a listener in the app when module option is missing', functio
   ];
 
   $this->assertBaseCommandResults($command, $arguments, $expected_path, $expected_substrings);
+});
+
+test('it scaffolds a listener with event option in module', function (): void {
+  $module_name = 'test-module';
+
+  $this->artisan(MakeModule::class, [
+    'name' => $module_name,
+    '--accept-namespace' => true,
+  ])->assertExitCode(0);
+
+  $this->app->make(Registry::class)->reload();
+
+  // First create an event
+  $this->artisan(MakeEvent::class, [
+    'name' => 'TestEvent',
+    '--module' => $module_name,
+  ])->assertExitCode(0);
+
+  // Then create listener with event option
+  $this->artisan(MakeListener::class, [
+    'name' => 'TestEventListener',
+    '--module' => $module_name,
+    '--event' => 'Modules\\TestModule\\Events\\TestEvent',
+  ])->assertExitCode(0);
+
+  $this->assertModuleFile('src/Listeners/TestEventListener.php', [
+    'namespace Modules\TestModule\Listeners',
+    'class TestEventListener',
+    'TestEvent',
+  ], $module_name);
 });

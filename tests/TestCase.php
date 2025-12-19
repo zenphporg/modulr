@@ -60,12 +60,18 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
     parent::tearDown();
   }
 
-  protected function makeModule(string $name = 'test-module'): ConfigStore
+  protected function makeModule(string $name = 'test-module', bool $empty = false): ConfigStore
   {
-    $this->artisan(MakeModule::class, [
+    $options = [
       'name' => $name,
       '--accept-namespace' => true,
-    ]);
+    ];
+
+    if ($empty) {
+      $options['--empty'] = true;
+    }
+
+    $this->artisan(MakeModule::class, $options);
 
     // Reload registry to pick up the newly created module
     $this->app->make(Registry::class)->reload();

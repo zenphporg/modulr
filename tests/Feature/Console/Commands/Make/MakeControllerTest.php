@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Routing\Console\ControllerMakeCommand;
+use Symfony\Component\Console\Input\ArrayInput;
 use Zen\Modulr\Concerns\ConfiguresCommands;
 use Zen\Modulr\Console\Commands\Make\MakeController;
 use Zen\Modulr\Console\Commands\Make\MakeModule;
@@ -93,8 +94,39 @@ test('it scaffolds a controller in the app when module option is missing', funct
 });
 
 test('it scaffolds a controller with model option in module', function (): void {
-  // Test that the parseModel method gets called when --model is used
-  expect(method_exists(MakeController::class, 'parseModel'))->toBeTrue();
+  // Create a module first
+  $this->artisan(MakeModule::class, [
+    'name' => 'test-module',
+    '--accept-namespace' => true,
+  ])->assertExitCode(0);
+
+  // Reload the module registry
+  $this->app->make(Registry::class)->reload();
+
+  // Test parseModel directly via reflection
+  $command = $this->app->make(MakeController::class);
+  $command->setLaravel($this->app);
+
+  // Set the module option
+  $reflection = new ReflectionClass($command);
+  $inputProperty = $reflection->getProperty('input');
+
+  $input = new ArrayInput([
+    'name' => 'TestController',
+    '--module' => 'test-module',
+  ], $command->getDefinition());
+  $inputProperty->setValue($command, $input);
+
+  // Call parseModel method
+  $parseModelMethod = $reflection->getMethod('parseModel');
+
+  // Test with a model name that doesn't start with namespace
+  $result = $parseModelMethod->invoke($command, 'Widget');
+  expect($result)->toBe('Modules\\TestModule\\Widget');
+
+  // Test with a model name that already has the namespace
+  $result = $parseModelMethod->invoke($command, 'Modules\\TestModule\\Widget');
+  expect($result)->toBe('Modules\\TestModule\\Widget');
 });
 
 test('it throws exception for invalid model characters in module', function (): void {
@@ -113,4 +145,26 @@ test('it throws exception for invalid model characters in module', function (): 
     '--module' => 'test-module',
     '--model' => 'User@Invalid',
   ]))->toThrow(InvalidArgumentException::class, 'Model name contains invalid characters.');
+});
+
+test('it uses parent parseModel when no module is set', function (): void {
+  // Test parseModel directly via reflection without a module
+  $command = $this->app->make(MakeController::class);
+  $command->setLaravel($this->app);
+
+  $reflection = new ReflectionClass($command);
+  $inputProperty = $reflection->getProperty('input');
+
+  $input = new ArrayInput([
+    'name' => 'TestController',
+  ], $command->getDefinition());
+  $inputProperty->setValue($command, $input);
+
+  // Call parseModel method without module
+  $parseModelMethod = $reflection->getMethod('parseModel');
+
+  // Test with a model name - should use parent behavior
+  $result = $parseModelMethod->invoke($command, 'Widget');
+  // Parent behavior may return App\Widget or App\Models\Widget depending on Laravel version
+  expect($result)->toMatch('/^App\\\\(Models\\\\)?Widget$/');
 });

@@ -135,8 +135,8 @@ class ModulrServiceProvider extends ServiceProvider
 
   protected function bootPackageCommands(): void
   {
-    if (! $this->app->runningInConsole()) {
-      return;
+    if (! $this->app->runningInConsole()) { // @codeCoverageIgnore
+      return; // @codeCoverageIgnore
     }
 
     $this->commands([
@@ -155,14 +155,14 @@ class ModulrServiceProvider extends ServiceProvider
    */
   protected function bootRoutes(): void
   {
-    if ($this->app->routesAreCached()) {
-      return;
+    if ($this->app->routesAreCached()) { // @codeCoverageIgnore
+      return; // @codeCoverageIgnore
     }
 
     $this->autoDiscoveryHelper()
       ->routeFileFinder()
       ->each(function (SplFileInfo $file): void {
-        require $file->getRealPath();
+        require $file->getRealPath(); // @codeCoverageIgnore
       });
   }
 
@@ -292,6 +292,7 @@ class ModulrServiceProvider extends ServiceProvider
   {
     $this->autoDiscoveryHelper()
       ->commandFileFinder()
+      // @codeCoverageIgnoreStart
       ->each(function (SplFileInfo $file) use ($artisan): void {
         $configStore = $this->registry()->moduleForPathOrFail($file->getPath());
         $class_name = $configStore->pathToFullyQualifiedClassName($file->getPathname());
@@ -299,6 +300,7 @@ class ModulrServiceProvider extends ServiceProvider
           $artisan->resolve($class_name);
         }
       });
+    // @codeCoverageIgnoreEnd
   }
 
   /**

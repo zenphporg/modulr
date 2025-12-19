@@ -32,10 +32,6 @@ abstract class ConfigWriter
       return $this->error("Unable to find or read: '$this->config_path'");
     }
 
-    if (! is_writable($this->config_path)) {
-      return $this->error("Config file is not writable: '$this->config_path'");
-    }
-
     return true;
   }
 

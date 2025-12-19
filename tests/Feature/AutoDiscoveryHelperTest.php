@@ -68,6 +68,11 @@ test('it finds factory directories', function (): void {
 });
 
 test('it finds migration directories', function (): void {
+  // Create migration directories since they're not created by default
+  $fs = new Filesystem;
+  $fs->ensureDirectoryExists($this->module1->path('database/migrations'));
+  $fs->ensureDirectoryExists($this->module2->path('database/migrations'));
+
   $resolved = [];
 
   $this->helper->migrationDirectoryFinder()->each(function (SplFileInfo $directory) use (&$resolved): void {
@@ -129,6 +134,13 @@ test('it finds blade components', function (): void {
 });
 
 test('it finds routes', function (): void {
+  // Create route files since they're not created by default
+  $fs = new Filesystem;
+  $fs->ensureDirectoryExists($this->module1->path('routes'));
+  $fs->ensureDirectoryExists($this->module2->path('routes'));
+  $fs->put($this->module1->path("routes/{$this->module1->name}-routes.php"), '<?php');
+  $fs->put($this->module2->path("routes/{$this->module2->name}-routes.php"), '<?php');
+
   $resolved = [];
 
   $this->helper->routeFileFinder()->each(function (SplFileInfo $file) use (&$resolved): void {
@@ -140,6 +152,11 @@ test('it finds routes', function (): void {
 });
 
 test('it finds view directories', function (): void {
+  // Create view directories since they're not created by default
+  $fs = new Filesystem;
+  $fs->ensureDirectoryExists($this->module1->path('resources/views'));
+  $fs->ensureDirectoryExists($this->module2->path('resources/views'));
+
   $resolved = [];
 
   $this->helper->viewDirectoryFinder()->each(function (SplFileInfo $directory) use (&$resolved): void {
@@ -151,10 +168,10 @@ test('it finds view directories', function (): void {
 });
 
 test('it finds lang directories', function (): void {
-  // These paths don't exist by default
+  // Create lang directories since they're not created by default
   $fs = new Filesystem;
-  $fs->makeDirectory($this->module1->path('resources/lang'));
-  $fs->makeDirectory($this->module2->path('resources/lang'));
+  $fs->ensureDirectoryExists($this->module1->path('resources/lang'));
+  $fs->ensureDirectoryExists($this->module2->path('resources/lang'));
 
   $resolved = [];
 
@@ -164,10 +181,6 @@ test('it finds lang directories', function (): void {
 
   expect($resolved)->toContain($this->module1->path('resources/lang'));
   expect($resolved)->toContain($this->module2->path('resources/lang'));
-
-  // Clean up created directories
-  $fs->deleteDirectory($this->module1->path('resources/lang'));
-  $fs->deleteDirectory($this->module2->path('resources/lang'));
 });
 
 test('it finds event listeners', function (): void {

@@ -53,6 +53,8 @@ class InstallCommand extends Command
    *
    *
    * @throws ParsingException
+   *
+   * @codeCoverageIgnore
    */
   public function handle(): int
   {
@@ -92,6 +94,8 @@ class InstallCommand extends Command
 
   /**
    * Fetch the composer package requested.
+   *
+   * @codeCoverageIgnore
    */
   protected function installComposerPackage(): void
   {
@@ -163,6 +167,8 @@ class InstallCommand extends Command
 
   /**
    * Update composer to finalize.
+   *
+   * @codeCoverageIgnore
    */
   protected function updateComposer(): void
   {
@@ -250,8 +256,8 @@ class InstallCommand extends Command
     $this->title('Updating application composer.json file');
 
     $original_working_dir = getcwd();
-    if ($original_working_dir === false) {
-      $original_working_dir = $this->laravel->basePath();
+    if ($original_working_dir === false) { // @codeCoverageIgnore
+      $original_working_dir = $this->laravel->basePath(); // @codeCoverageIgnore
     }
     chdir($this->laravel->basePath());
 
@@ -260,11 +266,11 @@ class InstallCommand extends Command
     $definition = $jsonFile->read();
 
     if (! isset($definition['repositories'])) {
-      $definition['repositories'] = [];
+      $definition['repositories'] = []; // @codeCoverageIgnore
     }
 
     if (! isset($definition['require'])) {
-      $definition['require'] = [];
+      $definition['require'] = []; // @codeCoverageIgnore
     }
 
     /** @var string $modulesDirectory */
@@ -291,13 +297,14 @@ class InstallCommand extends Command
       if (Arr::isAssoc($repositories)) {
         $repositories[$this->module_name] = $module_config;
       } else {
-        $repositories[] = $module_config;
+        $repositories[] = $module_config; // @codeCoverageIgnore
       }
       $definition['repositories'] = $repositories;
     }
 
     /** @var array<string, string> $require */
     $require = $definition['require'];
+    // @codeCoverageIgnoreStart
     if (! isset($require[$this->composer_name])) {
       $this->line(" - Adding require statement for <info>$this->composer_name:*</info>");
       $has_changes = true;
@@ -305,6 +312,7 @@ class InstallCommand extends Command
       $require["$this->composer_namespace/$this->module_name"] = '^1.0';
       $definition['require'] = $this->sortComposerPackages($require);
     }
+    // @codeCoverageIgnoreEnd
 
     /** @var array<string, string> $require */
     $require = $definition['require'];

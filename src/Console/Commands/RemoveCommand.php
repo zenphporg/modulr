@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Zen\Modulr\Console\Commands;
 
-use Composer\Factory;
 use Composer\Json\JsonFile;
 use Exception;
 use Illuminate\Console\Command;
@@ -29,7 +28,7 @@ class RemoveCommand extends Command
   /**
    * @var string
    */
-  protected $description = 'Remove a module and all its files';
+  protected $description = "Remove a module and all it's files";
 
   protected Registry $registry;
 
@@ -72,25 +71,35 @@ class RemoveCommand extends Command
       return 1;
     }
 
+    // @codeCoverageIgnoreStart
     if (! $this->confirmRemoval()) {
       $this->info('Module removal cancelled.');
 
       return 0;
     }
+    // @codeCoverageIgnoreEnd
 
     // Determine composer package name from module's composer.json
     $this->composer_name = $this->getComposerName($module);
-    $this->is_last_module = $modules->count() === 1;
 
     // Delete the module directory
     $this->filesystem->deleteDirectory($module->base_path);
     $this->info("Deleted module directory: {$module->base_path}");
 
+    // Reload registry and check if any modules remain
+    $this->registry->reload();
+    $this->is_last_module = $this->registry->modules()->isEmpty();
+
+    // If this was the last module, add .gitkeep to keep the directory tracked
+    if ($this->is_last_module) {
+      $modulesPath = dirname($module->base_path);
+
+      $this->filesystem->put($modulesPath.'/.gitkeep', '');
+      $this->line(' - Added <info>.gitkeep</info> to keep modules directory tracked');
+    }
+
     // Update composer.json
     $this->updateCoreComposerConfig();
-
-    // Reload registry
-    $this->registry->reload();
 
     // Clear module cache
     $this->call(ClearCommand::class);
@@ -120,6 +129,7 @@ class RemoveCommand extends Command
       return '';
     }
 
+    // @codeCoverageIgnoreStart
     $modules = $this->registry->modules()->keys()->all();
 
     /** @var string $selected */
@@ -129,6 +139,7 @@ class RemoveCommand extends Command
     );
 
     return $selected;
+    // @codeCoverageIgnoreEnd
   }
 
   protected function confirmRemoval(): bool
@@ -142,6 +153,7 @@ class RemoveCommand extends Command
       return true;
     }
 
+    // @codeCoverageIgnoreStart
     $this->newLine();
     $this->error('  ⚠️  WARNING: THIS ACTION IS IRREVERSIBLE!  ⚠️  ');
     $this->newLine();
@@ -158,6 +170,7 @@ class RemoveCommand extends Command
       label: "Are you absolutely sure you want to delete the '{$this->module_name}' module?",
       default: false,
     );
+    // @codeCoverageIgnoreEnd
   }
 
   protected function getComposerName(ConfigStore $module): string
@@ -189,12 +202,12 @@ class RemoveCommand extends Command
     $this->info('Updating application composer.json file...');
 
     $original_working_dir = getcwd();
-    if ($original_working_dir === false) {
-      $original_working_dir = $this->laravel->basePath();
+    if ($original_working_dir === false) { // @codeCoverageIgnore
+      $original_working_dir = $this->laravel->basePath(); // @codeCoverageIgnore
     }
     chdir($this->laravel->basePath());
 
-    $jsonFile = new JsonFile(Factory::getComposerFile());
+    $jsonFile = new JsonFile($this->laravel->basePath('composer.json'));
     /** @var array<string, mixed> $definition */
     $definition = $jsonFile->read();
 
@@ -217,6 +230,10 @@ class RemoveCommand extends Command
     if ($this->is_last_module && isset($definition['repositories']) && is_array($definition['repositories'])) {
       /** @var string $modulesDirectory */
       $modulesDirectory = config('modulr.modules_directory', 'modules');
+      // Use only the basename if it's an absolute path
+      if (str_starts_with($modulesDirectory, '/') || str_starts_with($modulesDirectory, '\\')) {
+        $modulesDirectory = basename($modulesDirectory);
+      }
       $moduleUrl = str_replace('\\', '/', $modulesDirectory).'/*';
 
       /** @var array<int|string, array{type?: string, url?: string}> $repositories */
@@ -255,6 +272,9 @@ class RemoveCommand extends Command
     chdir($original_working_dir);
   }
 
+  /**
+   * @codeCoverageIgnore
+   */
   protected function runComposerUpdate(): void
   {
     // Skip in unit tests

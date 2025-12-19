@@ -35,29 +35,12 @@ class MakeSeeder extends SeederMakeCommand
   }
 
   /**
-   * @param  string  $stub
-   * @param  string  $name
-   *
-   * @throws BindingResolutionException
-   */
-  #[Override]
-  protected function replaceNamespace(&$stub, $name): static // @pest-ignore-type
-  {
-    if (($module = $this->module()) instanceof ConfigStore && version_compare($this->getLaravel()->version(), '9.6.0', '<')) {
-      $namespace = $module->qualify('Database\Seeders');
-      $stub = str_replace('namespace Database\Seeders;', "namespace $namespace;", $stub);
-    }
-
-    return parent::replaceNamespace($stub, $name);
-  }
-
-  /**
    * @throws BindingResolutionException
    */
   #[Override]
   protected function rootNamespace(): string
   {
-    if (($module = $this->module()) instanceof ConfigStore && version_compare($this->getLaravel()->version(), '9.6.0', '>=')) {
+    if (($module = $this->module()) instanceof ConfigStore) {
       return $module->qualify('Database\Seeders');
     }
 
