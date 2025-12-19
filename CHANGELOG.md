@@ -1,5 +1,28 @@
 # Release Notes
 
+# [1.1.0](https://github.com/zenphporg/modulr/compare/v1.0.12...v1.1.0) (2025-12-19)
+
+
+### Bug Fixes
+
+* update for release.config file ([8e6ff4b](https://github.com/zenphporg/modulr/commit/8e6ff4b5c1b81d91bb7a8ac3b63b5d184ad3cc50))
+
+
+### Features
+
+* added prompts to install and build modules ([04435af](https://github.com/zenphporg/modulr/commit/04435af7674683d6bd03b39cc5e90507c02dd344))
+
+
+### Maintenance
+
+* change test run names ([7d79c0c](https://github.com/zenphporg/modulr/commit/7d79c0c23a08f0d2fc605bc9a86f397889be8860))
+* **dev-deps:** update dependencies to latest ([fb39b3c](https://github.com/zenphporg/modulr/commit/fb39b3c4918e1a955bb8a90ebaef7766356c7021))
+
+
+### Work in Progress
+
+* updating to add additional user features ([bab2c16](https://github.com/zenphporg/modulr/commit/bab2c1643bd86897f7bf73217b552d4c37f7dca1))
+
 ## [1.0.12](https://github.com/zenphporg/modulr/compare/v1.0.11...v1.0.12) (2025-06-25)
 
 
