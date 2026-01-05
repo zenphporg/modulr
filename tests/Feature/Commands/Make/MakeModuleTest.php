@@ -555,6 +555,12 @@ test('it prompts for controller type when controller is selected', function (): 
   $selectedProperty = $reflection->getProperty('selected_components');
   $selectedProperty->setValue($command, ['controller']);
 
+  $moduleNameProperty = $reflection->getProperty('module_name');
+  $moduleNameProperty->setValue($command, 'TestModule');
+
+  $classNameProperty = $reflection->getProperty('class_name_prefix');
+  $classNameProperty->setValue($command, 'TestModule');
+
   $method = $reflection->getMethod('promptForControllerType');
   $method->invoke($command);
 
@@ -586,6 +592,12 @@ test('it prompts for controller type when controller selected via model options'
 
   $modelOptionsProperty = $reflection->getProperty('model_options');
   $modelOptionsProperty->setValue($command, ['--controller' => true]);
+
+  $moduleNameProperty = $reflection->getProperty('module_name');
+  $moduleNameProperty->setValue($command, 'TestModule');
+
+  $classNameProperty = $reflection->getProperty('class_name_prefix');
+  $classNameProperty->setValue($command, 'TestModule');
 
   $method = $reflection->getMethod('promptForControllerType');
   $method->invoke($command);

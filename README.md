@@ -44,20 +44,30 @@ php artisan vendor:publish --tag=modulr-config
 Next, let's create a module:
 
 ```bash
+php artisan modules:make
+```
+
+Modulr uses [Laravel Prompts](https://laravel.com/docs/prompts) to provide an interactive module creation experience. You'll be guided through:
+
+1. **Module name** — Enter a name for your module (e.g., `billing`, `user-management`)
+2. **Components** — Select which components to generate (model, controller, migration, factory, etc.)
+3. **Component options** — Configure options for selected components:
+   - **Model**: Include factory, migration, seeder, policy, or controller
+   - **Controller**: Choose type (resource, API, invokable, singleton, or plain)
+   - **Mail/Notification**: Include markdown template
+   - **Component**: Use inline view
+   - **Event**: Also create a listener
+
+You can also pass the module name directly to skip the first prompt:
+
+```bash
 php artisan modules:make companies
 ```
 
-Modulr will scaffold up a new module for you:
+Or create an empty module structure with just the namespace:
 
-```
-modules/
-  companies/
-    composer.json
-    src/
-    tests/
-    routes/
-    resources/
-    database/
+```bash
+php artisan modules:make companies --empty
 ```
 
 It will also add two new entries to your app's `composer.json` file. The first entry registers `./modules/companies/` as a [path repository](https://getcomposer.org/doc/05-repositories.md#path), and the second requires `modules/companies:*` (like any other Composer dependency).
@@ -170,6 +180,28 @@ Both filenames and file contents support a number of placeholders. These include
 - `StubMigrationPrefix`
 - `StubFullyQualifiedTestCaseBase`
 - `StubTestCaseBase`
+
+### Extending Controller Generation
+
+When creating a module with a controller, Modulr dispatches a `ControllerPromptsCollecting` event that allows other packages to add their own options to the controller generation process.
+
+To listen for this event, register a listener in your service provider:
+
+```php
+use Zen\Modulr\Events\ControllerPromptsCollecting;
+
+Event::listen(ControllerPromptsCollecting::class, function (ControllerPromptsCollecting $event) {
+    // Access context about the controller being created
+    $controllerType = $event->controllerType; // 'resource', 'api', 'invokable', or 'plain'
+    $moduleName = $event->moduleName;
+    $className = $event->className;
+
+    // Add additional options to be passed to make:controller
+    $event->addOption('--requests', true);
+});
+```
+
+The options added via `addOption()` will be merged into the `make:controller` command arguments.
 
 ---
 

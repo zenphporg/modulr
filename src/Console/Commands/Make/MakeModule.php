@@ -15,6 +15,7 @@ use Seld\JsonLint\ParsingException;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 use Symfony\Component\Console\Terminal;
 use Zen\Modulr\Console\Commands\ClearCommand;
+use Zen\Modulr\Events\ControllerPromptsCollecting;
 use Zen\Modulr\Support\Registry;
 
 use function Laravel\Prompts\confirm;
@@ -119,6 +120,13 @@ class MakeModule extends Command
    * Selected event option (should also create listener)
    */
   protected bool $event_with_listener = false;
+
+  /**
+   * Additional controller options collected from event listeners.
+   *
+   * @var array<string, mixed>
+   */
+  protected array $additional_controller_options = [];
 
   /**
    * Available components that can be generated
@@ -321,6 +329,16 @@ class MakeModule extends Command
     );
 
     $this->controller_type = $selected;
+
+    // Dispatch event to allow extensions to add their own prompts/options
+    $event = new ControllerPromptsCollecting(
+      controllerType: $this->controller_type,
+      moduleName: $this->module_name,
+      className: $this->class_name_prefix,
+    );
+    event($event);
+
+    $this->additional_controller_options = $event->getAdditionalOptions();
   }
 
   protected function promptForMailOptions(): void
@@ -515,17 +533,19 @@ class MakeModule extends Command
   /**
    * Get the controller options based on the selected type.
    *
-   * @return array<string, bool>
+   * @return array<string, mixed>
    */
   protected function getControllerOptions(): array
   {
-    return match ($this->controller_type) {
+    $options = match ($this->controller_type) {
       'resource' => ['--resource' => true],
       'api' => ['--api' => true],
       'invokable' => ['--invokable' => true],
       'singleton' => ['--singleton' => true],
       default => [],
     };
+
+    return array_merge($options, $this->additional_controller_options);
   }
 
   /**
