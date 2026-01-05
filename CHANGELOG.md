@@ -1,5 +1,12 @@
 # Release Notes
 
+## [1.1.1](https://github.com/zenphporg/modulr/compare/v1.1.0...v1.1.1) (2026-01-05)
+
+
+### Code Refactoring
+
+* updates for workflow and add event hook ([d7ec88f](https://github.com/zenphporg/modulr/commit/d7ec88ff1fd8274fa0763f3189486ace7ae14b21))
+
 # [1.1.0](https://github.com/zenphporg/modulr/compare/v1.0.12...v1.1.0) (2025-12-19)
 
 
