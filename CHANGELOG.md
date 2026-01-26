@@ -1,5 +1,12 @@
 # Release Notes
 
+# [1.2.0](https://github.com/zenphporg/modulr/compare/v1.1.1...v1.2.0) (2026-01-26)
+
+
+### Features
+
+* vastly improved prompting and stubs ([c192d85](https://github.com/zenphporg/modulr/commit/c192d85ad3357653da56996451c7da37400a54ff))
+
 ## [1.1.1](https://github.com/zenphporg/modulr/compare/v1.1.0...v1.1.1) (2026-01-05)
 
 
