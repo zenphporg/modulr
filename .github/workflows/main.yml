@@ -21,7 +21,7 @@ jobs:
 
   test:
     needs: verify
-    uses: ./.github/workflows/test.yml
+    uses: ./.github/workflows/tests.yml
     with:
       ref: ${{ github.event.pull_request.head.sha || github.sha }}
 

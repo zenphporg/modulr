@@ -8,10 +8,25 @@ namespace Zen\Modulr\Concerns;
 
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Str;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 trait ConfiguresCommands
 {
   use GeneratesModules;
+
+  /**
+   * Skip Laravel's interactive prompts when called programmatically.
+   *
+   * Laravel's make commands use afterPromptingForMissingArguments to prompt
+   * for additional options. When called via callSilently() from MakeModule,
+   * these prompts would hang. We skip them since MakeModule handles all
+   * interactive prompts before calling the individual make commands.
+   */
+  protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output): void
+  {
+    // Skip parent's interactive prompts - MakeModule handles prompts
+  }
 
   /**
    * @param  string  $rootNamespace

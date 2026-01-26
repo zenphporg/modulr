@@ -265,33 +265,48 @@ class MakeModule extends Command
       return;
     }
 
+    // Build options dynamically, excluding already-selected components
+    $allOptions = [
+      'factory' => 'Factory',
+      'migration' => 'Migration',
+      'seeder' => 'Seeder',
+      'controller' => 'Controller',
+      'resource' => 'API Resource',
+      'policy' => 'Policy',
+    ];
+
+    // Filter out options that are already selected as components
+    $availableOptions = array_filter($allOptions, fn (string $label, string $key): bool => ! $this->isComponentSelected($key), ARRAY_FILTER_USE_BOTH);
+
+    // If all options are already selected, skip the prompt
+    if ($availableOptions === []) {
+      return;
+    }
+
+    // Add "All of the above" option if there are multiple options available
+    if (count($availableOptions) > 1) {
+      $availableOptions['all'] = 'All of the above';
+    }
+
     $this->newLine();
     $this->components->info('Model Options');
 
     /** @var array<string> $selected */
     $selected = multiselect(
       label: 'What would you like to include with your model?',
-      options: [
-        'factory' => 'Factory',
-        'migration' => 'Migration',
-        'seeder' => 'Seeder',
-        'controller' => 'Controller',
-        'resource' => 'API Resource',
-        'policy' => 'Policy',
-        'all' => 'All of the above',
-      ],
+      options: $availableOptions,
       default: [],
-      hint: 'These will be generated in addition to any already selected',
+      hint: 'Additional options for your model',
     );
 
     if (in_array('all', $selected, true)) {
       $this->model_options = [
-        '--factory' => true,
-        '--migration' => true,
-        '--seed' => true,
-        '--controller' => true,
-        '--resource' => true,
-        '--policy' => true,
+        '--factory' => ! $this->isComponentSelected('factory'),
+        '--migration' => ! $this->isComponentSelected('migration'),
+        '--seed' => ! $this->isComponentSelected('seeder'),
+        '--controller' => ! $this->isComponentSelected('controller'),
+        '--resource' => ! $this->isComponentSelected('resource'),
+        '--policy' => ! $this->isComponentSelected('policy'),
       ];
     } else {
       $this->model_options = [
@@ -392,6 +407,11 @@ class MakeModule extends Command
       return;
     }
 
+    // Skip if listener is already selected as a component
+    if ($this->isComponentSelected('listener')) {
+      return;
+    }
+
     $this->newLine();
     $this->components->info('Event Options');
 
@@ -474,6 +494,7 @@ class MakeModule extends Command
     $this->callSilently($command, [
       ...$arguments,
       '--module' => $this->module_name,
+      '--no-interaction' => true,
     ]);
 
     $this->line(" - Generated <info>{$this->available_components[$component]}</info>");
@@ -485,6 +506,7 @@ class MakeModule extends Command
         'name' => "{$componentName}Controller",
         ...$this->getControllerOptions(),
         '--module' => $this->module_name,
+        '--no-interaction' => true,
       ]);
       $this->line(' - Generated <info>Controller</info> (for model)');
     }
@@ -495,6 +517,7 @@ class MakeModule extends Command
         'name' => "{$componentName}CreatedListener",
         '--event' => "Modules\\{$this->class_name_prefix}\\Events\\{$componentName}Created",
         '--module' => $this->module_name,
+        '--no-interaction' => true,
       ]);
       $this->line(' - Generated <info>Listener</info> (for event)');
     }
@@ -848,7 +871,8 @@ class MakeModule extends Command
 
     // Test for service provider (if test is selected)
     if ($this->isComponentSelected('test')) {
-      $stubs['tests/StubClassNamePrefixServiceProviderTest.php'] = $this->pathToStub('ServiceProviderTest.php');
+      $testStub = $this->isUsingPest() ? 'ServiceProviderPestTest.php' : 'ServiceProviderTest.php';
+      $stubs['tests/StubClassNamePrefixServiceProviderTest.php'] = $this->pathToStub($testStub);
     }
 
     // Routes (if selected)
@@ -885,6 +909,32 @@ class MakeModule extends Command
   protected function pathToStub(string $filename): string
   {
     return str_replace('\\', '/', dirname(__DIR__, 4))."/stubs/$filename";
+  }
+
+  /**
+   * Check if the application is using Pest for testing.
+   */
+  protected function isUsingPest(): bool
+  {
+    $composerPath = $this->laravel->basePath('composer.json');
+
+    if (! file_exists($composerPath)) {
+      return false;
+    }
+
+    $contents = file_get_contents($composerPath);
+    if ($contents === false) {
+      return false; // @codeCoverageIgnore
+    }
+
+    /** @var array{require-dev?: array<string, string>}|null $composer */
+    $composer = json_decode($contents, true);
+
+    if (! is_array($composer)) {
+      return false;
+    }
+
+    return isset($composer['require-dev']['pestphp/pest']);
   }
 
   /**
