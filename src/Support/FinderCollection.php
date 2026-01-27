@@ -20,7 +20,7 @@ final class FinderCollection
   use ForwardsCalls;
 
   /** @var array<int, string> */
-  protected const array PREFER_COLLECTION_METHODS = ['filter', 'each', 'map'];
+  private const array PREFER_COLLECTION_METHODS = ['filter', 'each', 'map'];
 
   public static function forFiles(): self
   {

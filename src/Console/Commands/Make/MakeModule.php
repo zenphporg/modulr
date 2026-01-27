@@ -136,14 +136,9 @@ class MakeModule extends Command
   protected array $available_components = [
     'model' => 'Model',
     'controller' => 'Controller',
-    'migration' => 'Migration',
-    'factory' => 'Factory',
-    'seeder' => 'Seeder',
     'request' => 'Form Request',
     'resource' => 'API Resource',
-    'policy' => 'Policy',
     'event' => 'Event',
-    'listener' => 'Listener',
     'job' => 'Job',
     'mail' => 'Mailable',
     'notification' => 'Notification',
@@ -265,28 +260,12 @@ class MakeModule extends Command
       return;
     }
 
-    // Build options dynamically, excluding already-selected components
-    $allOptions = [
+    $options = [
       'factory' => 'Factory',
       'migration' => 'Migration',
       'seeder' => 'Seeder',
-      'controller' => 'Controller',
-      'resource' => 'API Resource',
       'policy' => 'Policy',
     ];
-
-    // Filter out options that are already selected as components
-    $availableOptions = array_filter($allOptions, fn (string $label, string $key): bool => ! $this->isComponentSelected($key), ARRAY_FILTER_USE_BOTH);
-
-    // If all options are already selected, skip the prompt
-    if ($availableOptions === []) {
-      return;
-    }
-
-    // Add "All of the above" option if there are multiple options available
-    if (count($availableOptions) > 1) {
-      $availableOptions['all'] = 'All of the above';
-    }
 
     $this->newLine();
     $this->components->info('Model Options');
@@ -294,30 +273,17 @@ class MakeModule extends Command
     /** @var array<string> $selected */
     $selected = multiselect(
       label: 'What would you like to include with your model?',
-      options: $availableOptions,
+      options: $options,
       default: [],
       hint: 'Additional options for your model',
     );
 
-    if (in_array('all', $selected, true)) {
-      $this->model_options = [
-        '--factory' => ! $this->isComponentSelected('factory'),
-        '--migration' => ! $this->isComponentSelected('migration'),
-        '--seed' => ! $this->isComponentSelected('seeder'),
-        '--controller' => ! $this->isComponentSelected('controller'),
-        '--resource' => ! $this->isComponentSelected('resource'),
-        '--policy' => ! $this->isComponentSelected('policy'),
-      ];
-    } else {
-      $this->model_options = [
-        '--factory' => in_array('factory', $selected, true),
-        '--migration' => in_array('migration', $selected, true),
-        '--seed' => in_array('seeder', $selected, true),
-        '--controller' => in_array('controller', $selected, true),
-        '--resource' => in_array('resource', $selected, true),
-        '--policy' => in_array('policy', $selected, true),
-      ];
-    }
+    $this->model_options = [
+      '--factory' => in_array('factory', $selected, true),
+      '--migration' => in_array('migration', $selected, true),
+      '--seed' => in_array('seeder', $selected, true),
+      '--policy' => in_array('policy', $selected, true),
+    ];
 
     // Filter out false values
     $this->model_options = array_filter($this->model_options);
@@ -325,11 +291,7 @@ class MakeModule extends Command
 
   protected function promptForControllerType(): void
   {
-    $controllerSelectedAsComponent = in_array('controller', $this->selected_components, true);
-    $controllerSelectedViaModel = isset($this->model_options['--controller']) && $this->model_options['--controller'];
-
-    // Show controller type prompt if controller is selected either as component or via model
-    if (! $controllerSelectedAsComponent && ! $controllerSelectedViaModel) {
+    if (! in_array('controller', $this->selected_components, true)) {
       return;
     }
 
@@ -404,11 +366,6 @@ class MakeModule extends Command
   protected function promptForEventOptions(): void
   {
     if (! in_array('event', $this->selected_components, true)) {
-      return;
-    }
-
-    // Skip if listener is already selected as a component
-    if ($this->isComponentSelected('listener')) {
       return;
     }
 
@@ -499,18 +456,6 @@ class MakeModule extends Command
 
     $this->line(" - Generated <info>{$this->available_components[$component]}</info>");
 
-    // If model was selected with controller option, create the controller with the selected type
-    // We do this separately because make:model --controller doesn't support controller type flags
-    if ($component === 'model' && $this->controllerSelectedViaModel() && ! $this->isComponentSelected('controller')) {
-      $this->callSilently('make:controller', [
-        'name' => "{$componentName}Controller",
-        ...$this->getControllerOptions(),
-        '--module' => $this->module_name,
-        '--no-interaction' => true,
-      ]);
-      $this->line(' - Generated <info>Controller</info> (for model)');
-    }
-
     // If event was selected with listener option, create the listener too
     if ($component === 'event' && $this->event_with_listener) {
       $this->callSilently('make:listener', [
@@ -538,19 +483,7 @@ class MakeModule extends Command
       unset($options['--migration']);
     }
 
-    // Remove --controller from model options - we'll create it separately with the correct type
-    // Laravel's make:model --controller doesn't support controller type flags
-    unset($options['--controller']);
-
     return $options;
-  }
-
-  /**
-   * Check if controller was selected via model options.
-   */
-  protected function controllerSelectedViaModel(): bool
-  {
-    return isset($this->model_options['--controller']) && $this->model_options['--controller'];
   }
 
   /**
@@ -856,18 +789,20 @@ class MakeModule extends Command
   protected function getStubs(): array
   {
     $custom_stubs = config('modulr.stubs');
+
+    // Use custom stubs as base if configured, otherwise use default base stubs
     if (is_array($custom_stubs)) {
-      /** @var array<string, string> $custom_stubs */
-      return $custom_stubs;
+      /** @var array<string, string> $stubs */
+      $stubs = $custom_stubs;
+    } else {
+      $composer_stub = 'composer-stub-latest.json';
+
+      // Base stubs always included (composer.json and ServiceProvider)
+      $stubs = [
+        'composer.json' => $this->pathToStub($composer_stub),
+        'src/Providers/StubClassNamePrefixServiceProvider.php' => $this->pathToStub('ServiceProvider.php'),
+      ];
     }
-
-    $composer_stub = 'composer-stub-latest.json';
-
-    // Base stubs always included (composer.json and ServiceProvider)
-    $stubs = [
-      'composer.json' => $this->pathToStub($composer_stub),
-      'src/Providers/StubClassNamePrefixServiceProvider.php' => $this->pathToStub('ServiceProvider.php'),
-    ];
 
     // Test for service provider (if test is selected)
     if ($this->isComponentSelected('test')) {

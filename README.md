@@ -70,13 +70,7 @@ Or create an empty module structure with just the namespace:
 php artisan modules:make companies --empty
 ```
 
-It will also add two new entries to your app's `composer.json` file. The first entry registers `./modules/companies/` as a [path repository](https://getcomposer.org/doc/05-repositories.md#path), and the second requires `modules/companies:*` (like any other Composer dependency).
-
-Modulr will then remind you to perform a Composer update, so let's do that now:
-
-```bash
-composer update modules/companies
-```
+It will also add two new entries to your app's `composer.json` file. The first entry registers `./modules/companies/` as a [path repository](https://getcomposer.org/doc/05-repositories.md#path), and the second requires `modules/companies:*` (like any other Composer dependency). Modulr will then automatically run `composer update` to install the new module.
 
 ### Optional: Config synchronization
 

@@ -204,25 +204,6 @@ test('it can get model options', function (): void {
 
   expect($options)->toHaveKey('--factory');
   expect($options)->not->toHaveKey('--migration');
-  expect($options)->not->toHaveKey('--controller');
-});
-
-test('it can check if controller selected via model', function (): void {
-  $command = $this->app->make(MakeModule::class);
-  $reflection = new ReflectionClass($command);
-
-  $modelOptionsProperty = $reflection->getProperty('model_options');
-
-  $method = $reflection->getMethod('controllerSelectedViaModel');
-
-  $modelOptionsProperty->setValue($command, []);
-  expect($method->invoke($command))->toBeFalse();
-
-  $modelOptionsProperty->setValue($command, ['--controller' => false]);
-  expect($method->invoke($command))->toBeFalse();
-
-  $modelOptionsProperty->setValue($command, ['--controller' => true]);
-  expect($method->invoke($command))->toBeTrue();
 });
 
 test('it can get seeders directory', function (): void {
@@ -481,10 +462,11 @@ test('it prompts for model options when model is selected', function (): void {
   expect($options['--factory'])->toBeTrue();
 });
 
-test('it prompts for model options and selects all', function (): void {
+test('it prompts for model options and selects multiple', function (): void {
   // Reset fallback state and fake prompt
   resetPromptFallback();
-  Prompt::fake([Key::DOWN, Key::DOWN, Key::DOWN, Key::DOWN, Key::DOWN, Key::DOWN, Key::SPACE, Key::ENTER]);
+  // Select first two options: Factory and Migration
+  Prompt::fake([Key::SPACE, Key::DOWN, Key::SPACE, Key::ENTER]);
 
   $command = $this->app->make(MakeModule::class);
   $command->setLaravel($this->app);
@@ -511,10 +493,6 @@ test('it prompts for model options and selects all', function (): void {
 
   expect($options)->toHaveKey('--factory');
   expect($options)->toHaveKey('--migration');
-  expect($options)->toHaveKey('--seed');
-  expect($options)->toHaveKey('--controller');
-  expect($options)->toHaveKey('--resource');
-  expect($options)->toHaveKey('--policy');
 });
 
 test('it skips controller type prompt when controller not selected', function (): void {
@@ -566,44 +544,6 @@ test('it prompts for controller type when controller is selected', function (): 
 
   $controllerTypeProperty = $reflection->getProperty('controller_type');
   expect($controllerTypeProperty->getValue($command))->toBe('api');
-});
-
-test('it prompts for controller type when controller selected via model options', function (): void {
-  // Reset fallback state and fake prompt
-  resetPromptFallback();
-  Prompt::fake([Key::DOWN, Key::DOWN, Key::ENTER]);
-
-  $command = $this->app->make(MakeModule::class);
-  $command->setLaravel($this->app);
-  $reflection = new ReflectionClass($command);
-
-  $input = new ArrayInput([]);
-  $bufferedOutput = new BufferedOutput;
-  $output = new SymfonyStyle($input, $bufferedOutput);
-
-  $outputProperty = $reflection->getProperty('output');
-  $outputProperty->setValue($command, $output);
-
-  $componentsProperty = $reflection->getProperty('components');
-  $componentsProperty->setValue($command, new Factory($output));
-
-  $selectedProperty = $reflection->getProperty('selected_components');
-  $selectedProperty->setValue($command, ['model']);
-
-  $modelOptionsProperty = $reflection->getProperty('model_options');
-  $modelOptionsProperty->setValue($command, ['--controller' => true]);
-
-  $moduleNameProperty = $reflection->getProperty('module_name');
-  $moduleNameProperty->setValue($command, 'TestModule');
-
-  $classNameProperty = $reflection->getProperty('class_name_prefix');
-  $classNameProperty->setValue($command, 'TestModule');
-
-  $method = $reflection->getMethod('promptForControllerType');
-  $method->invoke($command);
-
-  $controllerTypeProperty = $reflection->getProperty('controller_type');
-  expect($controllerTypeProperty->getValue($command))->toBe('invokable');
 });
 
 test('it skips mail options prompt when mail not selected', function (): void {

@@ -88,8 +88,8 @@ class ModulrServiceProvider extends ServiceProvider
     // Set up lazy registrations for things that only need to run if we're using
     // that functionality (e.g. we only need to look for and register migrations
     // if we're running the migrator)
-    $this->registerLazily(Migrator::class, [$this, 'registerMigrations']);
-    $this->registerLazily(Gate::class, [$this, 'registerPolicies']);
+    $this->registerLazily(Migrator::class, $this->registerMigrations(...));
+    $this->registerLazily(Gate::class, $this->registerPolicies(...));
 
     // Look for and register all our commands in the CLI context
     Artisan::starting($this->registerCommands(...));
