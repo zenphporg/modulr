@@ -1,5 +1,12 @@
 # Release Notes
 
+## [1.2.1](https://github.com/zenphporg/modulr/compare/v1.2.0...v1.2.1) (2026-01-27)
+
+
+### Code Refactoring
+
+* reworked main prompt and option prompts ([38bf416](https://github.com/zenphporg/modulr/commit/38bf416619e8f474337883c65ed7fe9bb3ccac10))
+
 # [1.2.0](https://github.com/zenphporg/modulr/compare/v1.1.1...v1.2.0) (2026-01-26)
 
 
