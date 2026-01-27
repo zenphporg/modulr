@@ -1,5 +1,17 @@
 # Release Notes
 
+## [1.2.2](https://github.com/zenphporg/modulr/compare/v1.2.1...v1.2.2) (2026-01-27)
+
+
+### Bug Fixes
+
+* updated the sync command ([eaaaf76](https://github.com/zenphporg/modulr/commit/eaaaf766527ec1b094494ca6c87543b33dc132ba))
+
+
+### Code Refactoring
+
+* fixed unit and feature test setup ([aefd6fd](https://github.com/zenphporg/modulr/commit/aefd6fd8c1d18f1f6708f86663058baf5567bbd9))
+
 ## [1.2.1](https://github.com/zenphporg/modulr/compare/v1.2.0...v1.2.1) (2026-01-27)
 
 
