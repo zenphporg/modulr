@@ -1020,3 +1020,52 @@ test('it prompts for module name via text function', function (): void {
   $modulePath = $this->app->basePath('modules/test-named');
   expect(is_dir($modulePath))->toBeTrue();
 });
+
+test('isUsingPest returns false when composer.json does not exist', function (): void {
+  $command = $this->app->make(MakeModule::class);
+  $command->setLaravel($this->app);
+  $reflection = new ReflectionClass($command);
+
+  // Temporarily rename composer.json
+  $composerPath = $this->app->basePath('composer.json');
+  $tempPath = $this->app->basePath('composer.json.bak');
+
+  if (file_exists($composerPath)) {
+    rename($composerPath, $tempPath);
+  }
+
+  try {
+    $method = $reflection->getMethod('isUsingPest');
+    $result = $method->invoke($command);
+    expect($result)->toBeFalse();
+  } finally {
+    // Restore composer.json
+    if (file_exists($tempPath)) {
+      rename($tempPath, $composerPath);
+    }
+  }
+});
+
+test('isUsingPest returns false when composer.json contains invalid json', function (): void {
+  $command = $this->app->make(MakeModule::class);
+  $command->setLaravel($this->app);
+  $reflection = new ReflectionClass($command);
+
+  // Temporarily replace composer.json with invalid content
+  $composerPath = $this->app->basePath('composer.json');
+  $tempPath = $this->app->basePath('composer.json.bak');
+  $originalContent = file_get_contents($composerPath);
+
+  file_put_contents($tempPath, $originalContent);
+  file_put_contents($composerPath, 'not valid json');
+
+  try {
+    $method = $reflection->getMethod('isUsingPest');
+    $result = $method->invoke($command);
+    expect($result)->toBeFalse();
+  } finally {
+    // Restore composer.json
+    file_put_contents($composerPath, file_get_contents($tempPath));
+    unlink($tempPath);
+  }
+});

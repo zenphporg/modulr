@@ -134,26 +134,38 @@ test('it warns when phpunit.xml is missing', function (): void {
     ->assertExitCode(0);
 });
 
-test('it adds modules test suite to phpunit.xml', function (): void {
-  // Create phpunit.xml without modules test suite
+test('it adds modules directories to phpunit.xml testsuites', function (): void {
+  // Create phpunit.xml with Feature and Unit testsuites
   $phpunitPath = $this->app->basePath('phpunit.xml');
 
   $this->filesystem()->put($phpunitPath, '<?xml version="1.0" encoding="UTF-8"?>
 <phpunit>
   <testsuites>
+    <testsuite name="Unit">
+      <directory suffix="Test.php">./tests/Unit</directory>
+    </testsuite>
     <testsuite name="Feature">
       <directory suffix="Test.php">./tests/Feature</directory>
     </testsuite>
   </testsuites>
+  <source>
+    <include>
+      <directory suffix=".php">./app</directory>
+    </include>
+  </source>
 </phpunit>');
 
   $this->artisan('modules:sync', ['--no-phpstorm' => true])
-    ->expectsOutputToContain('Added "Modules" PHPUnit test suite')
+    ->expectsOutputToContain("Added modules directory to 'Feature' testsuite")
+    ->expectsOutputToContain("Added modules directory to 'Unit' testsuite")
+    ->expectsOutputToContain('Added modules source directory to coverage configuration')
     ->assertExitCode(0);
 
-  // Verify the modules test suite was added
+  // Verify the modules directories were added
   $content = $this->filesystem()->get($phpunitPath);
-  expect($content)->toContain('Modules');
+  expect($content)->toContain('modules/*/tests/Feature');
+  expect($content)->toContain('modules/*/tests/Unit');
+  expect($content)->toContain('modules/*/src');
 });
 
 test('it handles missing idea directory for iml file', function (): void {
@@ -189,15 +201,21 @@ test('it handles invalid phpunit.xml', function (): void {
     ->assertExitCode(0);
 });
 
-test('it handles phpunit.xml without testsuites node', function (): void {
-  // Create phpunit.xml without testsuites
+test('it handles phpunit.xml without matching testsuites', function (): void {
+  // Create phpunit.xml without Feature or Unit testsuites
   $phpunitPath = $this->app->basePath('phpunit.xml');
   $this->filesystem()->put($phpunitPath, '<?xml version="1.0" encoding="UTF-8"?>
 <phpunit>
+  <testsuites>
+    <testsuite name="Other">
+      <directory suffix="Test.php">./tests/Other</directory>
+    </testsuite>
+  </testsuites>
 </phpunit>');
 
   $this->artisan('modules:sync', ['--no-phpstorm' => true])
-    ->expectsOutputToContain('Cannot find <testsuites> node')
+    ->expectsOutputToContain("Cannot find 'Feature' testsuite")
+    ->expectsOutputToContain("Cannot find 'Unit' testsuite")
     ->assertExitCode(0);
 });
 
@@ -206,13 +224,18 @@ test('it shows verbose output for laravel plugin config errors', function (): vo
   $ideaPath = $this->app->basePath('.idea');
   $this->filesystem()->ensureDirectoryExists($ideaPath);
 
-  // Create a minimal phpunit.xml
+  // Create a minimal phpunit.xml with Feature and Unit testsuites
   $phpunitPath = $this->app->basePath('phpunit.xml');
   $this->filesystem()->put($phpunitPath, '<?xml version="1.0" encoding="UTF-8"?>
 <phpunit>
   <testsuites>
-    <testsuite name="Modules">
-      <directory suffix="Test.php">./modules/*/tests</directory>
+    <testsuite name="Unit">
+      <directory suffix="Test.php">./tests/Unit</directory>
+      <directory>modules/*/tests/Unit</directory>
+    </testsuite>
+    <testsuite name="Feature">
+      <directory suffix="Test.php">./tests/Feature</directory>
+      <directory>modules/*/tests/Feature</directory>
     </testsuite>
   </testsuites>
 </phpunit>');
@@ -243,13 +266,18 @@ test('it handles iml file that cannot be updated', function (): void {
   // Make the file unreadable
   chmod($imlPath, 0000);
 
-  // Create a minimal phpunit.xml
+  // Create a minimal phpunit.xml with Feature and Unit testsuites
   $phpunitPath = $this->app->basePath('phpunit.xml');
   $this->filesystem()->put($phpunitPath, '<?xml version="1.0" encoding="UTF-8"?>
 <phpunit>
   <testsuites>
-    <testsuite name="Modules">
-      <directory suffix="Test.php">./modules/*/tests</directory>
+    <testsuite name="Unit">
+      <directory suffix="Test.php">./tests/Unit</directory>
+      <directory>modules/*/tests/Unit</directory>
+    </testsuite>
+    <testsuite name="Feature">
+      <directory suffix="Test.php">./tests/Feature</directory>
+      <directory>modules/*/tests/Feature</directory>
     </testsuite>
   </testsuites>
 </phpunit>');
@@ -262,4 +290,19 @@ test('it handles iml file that cannot be updated', function (): void {
 
   // Restore permissions for cleanup
   chmod($imlPath, 0644);
+});
+
+test('it skips adding directories when all already exist', function (): void {
+  $phpunitPath = $this->app->basePath('phpunit.xml');
+
+  // Get the modules directory from config (which is an absolute path in tests)
+  $modulesDir = config('modulr.modules_directory');
+
+  // Create phpunit.xml with modules directories already added using the configured path
+  $xml = '<?xml version="1.0" encoding="UTF-8"?><phpunit><testsuites><testsuite name="Unit"><directory suffix="Test.php">./tests/Unit</directory><directory>'.$modulesDir.'/*/tests/Unit</directory></testsuite><testsuite name="Feature"><directory suffix="Test.php">./tests/Feature</directory><directory>'.$modulesDir.'/*/tests/Feature</directory></testsuite></testsuites><source><include><directory suffix=".php">./app</directory><directory>'.$modulesDir.'/*/src</directory></include></source></phpunit>';
+  $this->filesystem()->put($phpunitPath, $xml);
+
+  $this->artisan('modules:sync', ['--no-phpstorm' => true])
+    ->expectsOutputToContain('PHPUnit configuration already up to date')
+    ->assertExitCode(0);
 });

@@ -2,6 +2,7 @@
 
 use Illuminate\Routing\Console\ControllerMakeCommand;
 use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Zen\Modulr\Concerns\ConfiguresCommands;
 use Zen\Modulr\Console\Commands\Make\MakeController;
 use Zen\Modulr\Console\Commands\Make\MakeModule;
@@ -167,4 +168,20 @@ test('it uses parent parseModel when no module is set', function (): void {
   $result = $parseModelMethod->invoke($command, 'Widget');
   // Parent behavior may return App\Widget or App\Models\Widget depending on Laravel version
   expect($result)->toMatch('/^App\\\\(Models\\\\)?Widget$/');
+});
+
+test('afterPromptingForMissingArguments does nothing', function (): void {
+  // This method is intentionally empty to skip parent's interactive prompts
+  $command = $this->app->make(MakeController::class);
+  $command->setLaravel($this->app);
+
+  $reflection = new ReflectionClass($command);
+  $method = $reflection->getMethod('afterPromptingForMissingArguments');
+
+  $input = new ArrayInput(['name' => 'TestController'], $command->getDefinition());
+  $output = new BufferedOutput;
+
+  // Should not throw and should do nothing
+  $result = $method->invoke($command, $input, $output);
+  expect($result)->toBeNull();
 });

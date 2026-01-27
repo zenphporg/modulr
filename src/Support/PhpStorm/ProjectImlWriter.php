@@ -42,13 +42,25 @@ class ProjectImlWriter extends ConfigWriter
           }
         }
 
-        $tests_url = "file://\$MODULE_DIR\$/$modules_directory/$configStore->name/tests";
-        if ($existing_urls->doesntContain($tests_url)) {
-          $tests_node = $content->addChild('sourceFolder');
-          if ($tests_node !== null) {
-            $tests_node->addAttribute('url', $tests_url);
-            $tests_node->addAttribute('isTestSource', 'true');
-            $tests_node->addAttribute('packagePrefix', rtrim($configStore->namespaces->first() ?? '', '\\').'\\Tests');
+        // Add Feature tests directory
+        $featureTestsUrl = "file://\$MODULE_DIR\$/$modules_directory/$configStore->name/tests/Feature";
+        if ($existing_urls->doesntContain($featureTestsUrl)) {
+          $featureNode = $content->addChild('sourceFolder');
+          if ($featureNode !== null) {
+            $featureNode->addAttribute('url', $featureTestsUrl);
+            $featureNode->addAttribute('isTestSource', 'true');
+            $featureNode->addAttribute('packagePrefix', rtrim($configStore->namespaces->first() ?? '', '\\').'\\Tests\\Feature');
+          }
+        }
+
+        // Add Unit tests directory
+        $unitTestsUrl = "file://\$MODULE_DIR\$/$modules_directory/$configStore->name/tests/Unit";
+        if ($existing_urls->doesntContain($unitTestsUrl)) {
+          $unitNode = $content->addChild('sourceFolder');
+          if ($unitNode !== null) {
+            $unitNode->addAttribute('url', $unitTestsUrl);
+            $unitNode->addAttribute('isTestSource', 'true');
+            $unitNode->addAttribute('packagePrefix', rtrim($configStore->namespaces->first() ?? '', '\\').'\\Tests\\Unit');
           }
         }
       });

@@ -57,37 +57,76 @@ class SyncCommand extends Command
       return;
     }
 
-    $existing_nodes = $config->xpath("//phpunit//testsuites//testsuite//directory[text()='./{$modules_directory}/*/tests']");
+    // Add modules Feature tests to Feature testsuite
+    $featureUpdated = $this->addDirectoryToTestsuite($config, 'Feature', "{$modules_directory}/*/tests/Feature");
 
-    if (is_array($existing_nodes) && count($existing_nodes) > 0) {
-      $this->info('Modules test suite already exists in phpunit.xml');
+    // Add modules Unit tests to Unit testsuite
+    $unitUpdated = $this->addDirectoryToTestsuite($config, 'Unit', "{$modules_directory}/*/tests/Unit");
 
-      return;
+    // Add modules source to coverage source/include
+    $sourceUpdated = $this->addDirectoryToSource($config, $modules_directory);
+
+    $updated = $featureUpdated || $unitUpdated || $sourceUpdated;
+
+    if ($updated) {
+      $xmlContent = $config->asXML();
+      if ($xmlContent !== false) {
+        $this->filesystem->put($config_path, $xmlContent);
+      }
+    } else {
+      $this->info('PHPUnit configuration already up to date.');
+    }
+  }
+
+  protected function addDirectoryToTestsuite(SimpleXMLElement $config, string $testsuiteName, string $directoryPath): bool
+  {
+    // Check if already exists
+    $existingNodes = $config->xpath("//phpunit//testsuites//testsuite[@name='{$testsuiteName}']//directory[text()='{$directoryPath}']");
+    if (is_array($existingNodes) && count($existingNodes) > 0) {
+      return false;
     }
 
-    $testsuites = $config->xpath('//phpunit//testsuites');
+    // Find the testsuite
+    $testsuites = $config->xpath("//phpunit//testsuites//testsuite[@name='{$testsuiteName}']");
     if (! is_array($testsuites) || count($testsuites) === 0) {
-      $this->error('Cannot find <testsuites> node in phpunit.xml file. Skipping PHPUnit configuration.');
+      $this->warn("Cannot find '{$testsuiteName}' testsuite in phpunit.xml. Skipping.");
 
-      return;
+      return false;
     }
 
-    /** @var SimpleXMLElement $firstTestsuite */
-    $firstTestsuite = $testsuites[0];
-    $testsuite = $firstTestsuite->addChild('testsuite');
-    $testsuite->addAttribute('name', 'Modules');
+    /** @var SimpleXMLElement $testsuite */
+    $testsuite = $testsuites[0];
+    $testsuite->addChild('directory', $directoryPath);
 
-    $directory = $testsuite->addChild('directory');
-    $directory->addAttribute('suffix', 'Test.php');
-    $directory[0] = "./{$modules_directory}/*/tests";
+    $this->info("Added modules directory to '{$testsuiteName}' testsuite.");
 
-    $config->formatOutput = true;
+    return true;
+  }
 
-    $xmlContent = $config->asXML();
-    if ($xmlContent !== false) {
-      $this->filesystem->put($config_path, $xmlContent);
-      $this->info('Added "Modules" PHPUnit test suite.');
+  protected function addDirectoryToSource(SimpleXMLElement $config, string $modulesDirectory): bool
+  {
+    $directoryPath = "{$modulesDirectory}/*/src";
+
+    // Check if already exists in source/include
+    $existingNodes = $config->xpath("//phpunit//source//include//directory[text()='{$directoryPath}']");
+    if (is_array($existingNodes) && count($existingNodes) > 0) {
+      return false;
     }
+
+    // Find the source/include element
+    $includes = $config->xpath('//phpunit//source//include');
+    if (! is_array($includes) || count($includes) === 0) {
+      // No source/include section exists, skip
+      return false;
+    }
+
+    /** @var SimpleXMLElement $include */
+    $include = $includes[0];
+    $include->addChild('directory', $directoryPath);
+
+    $this->info('Added modules source directory to coverage configuration.');
+
+    return true;
   }
 
   protected function updatePhpStormConfig(): void
