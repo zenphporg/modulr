@@ -804,10 +804,12 @@ class MakeModule extends Command
       ];
     }
 
-    // Test for service provider (if test is selected)
+    // Tests (if test is selected)
     if ($this->isComponentSelected('test')) {
-      $testStub = $this->isUsingPest() ? 'ServiceProviderPestTest.php' : 'ServiceProviderTest.php';
-      $stubs['tests/StubClassNamePrefixServiceProviderTest.php'] = $this->pathToStub($testStub);
+      $featureStub = $this->isUsingPest() ? 'ServiceProviderPestTest.php' : 'ServiceProviderTest.php';
+      $unitStub = $this->isUsingPest() ? 'ExamplePestUnitTest.php' : 'ExampleUnitTest.php';
+      $stubs['tests/Feature/StubClassNamePrefixServiceProviderTest.php'] = $this->pathToStub($featureStub);
+      $stubs['tests/Unit/ExampleTest.php'] = $this->pathToStub($unitStub);
     }
 
     // Routes (if selected)

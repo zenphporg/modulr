@@ -2,7 +2,7 @@
 
 // @codingStandardsIgnoreFile
 
-namespace StubModuleNamespace\StubClassNamePrefix\Tests;
+namespace StubModuleNamespace\StubClassNamePrefix\Tests\Feature;
 
 class StubClassNamePrefixServiceProviderTest extends StubTestCaseBase
 {

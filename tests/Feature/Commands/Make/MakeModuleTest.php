@@ -232,7 +232,8 @@ test('it can get stubs with selected components', function (): void {
 
   expect($stubs)->toHaveKey('composer.json');
   expect($stubs)->toHaveKey('src/Providers/StubClassNamePrefixServiceProvider.php');
-  expect($stubs)->toHaveKey('tests/StubClassNamePrefixServiceProviderTest.php');
+  expect($stubs)->toHaveKey('tests/Feature/StubClassNamePrefixServiceProviderTest.php');
+  expect($stubs)->toHaveKey('tests/Unit/ExampleTest.php');
   expect($stubs)->toHaveKey('routes/StubModuleName-routes.php');
   expect($stubs)->toHaveKey('resources/views/index.blade.php');
   expect($stubs)->toHaveKey('database/factories/.gitkeep');
