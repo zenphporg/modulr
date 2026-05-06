@@ -58,13 +58,12 @@
       "./vendor/bin/fixr --test"
     ],
     "test:feat": "./vendor/bin/pest",
-    "test:coverage": "./vendor/bin/pest --coverage --coverage-clover=clover.xml --min=100.0; php bin/clean-coverage",
+    "test:coverage": "./vendor/bin/pest --compact --coverage --coverage-clover=clover.xml --min=100.0; php bin/clean-coverage",
     "test:static": "./vendor/bin/phpstan analyze",
     "test": [
       "@test:types",
       "@test:static",
       "@test:lint",
-      "@test:types",
       "@test:feat"
     ]
   },
