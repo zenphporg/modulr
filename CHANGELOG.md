@@ -1,5 +1,12 @@
 # Release Notes
 
+# [1.3.0](https://github.com/zenphporg/modulr/compare/v1.2.2...v1.3.0) (2026-05-06)
+
+
+### Features
+
+* update to ensure laravel 13 compatability ([9648c97](https://github.com/zenphporg/modulr/commit/9648c9717272542350b446cca1c0e032d90242a2))
+
 ## [1.2.2](https://github.com/zenphporg/modulr/compare/v1.2.1...v1.2.2) (2026-01-27)
 
 
