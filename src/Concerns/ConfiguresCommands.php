@@ -79,6 +79,8 @@ trait ConfiguresCommands
   }
 
   /**
+   * @return class-string
+   *
    * @throws BindingResolutionException
    */
   protected function qualifyModel(string $model): string
@@ -92,10 +94,14 @@ trait ConfiguresCommands
     $model = str_replace('/', '\\', ltrim($model, '\\/'));
 
     if (Str::startsWith($model, $module->namespace())) {
+      /** @var class-string $model */
       return $model;
     }
 
-    return $module->qualify('Models\\'.$model);
+    /** @var class-string $qualified */
+    $qualified = $module->qualify('Models\\'.$model);
+
+    return $qualified;
   }
 
   /**

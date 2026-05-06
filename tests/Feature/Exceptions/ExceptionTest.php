@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Zen\Modulr\Exceptions\CannotFindModuleForPathException;
 use Zen\Modulr\Exceptions\Exception;
 

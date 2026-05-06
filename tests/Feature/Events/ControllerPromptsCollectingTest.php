@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Zen\Modulr\Events\ControllerPromptsCollecting;
 
 test('it can be instantiated', function (): void {

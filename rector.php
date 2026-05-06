@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Rector\Caching\ValueObject\Storage\FileCacheStorage;
 use Rector\Config\RectorConfig;
+use Rector\DeadCode\Rector\ClassMethod\RemoveUselessReturnTagRector;
 use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
 use RectorLaravel\Set\LaravelSetList;
 use RectorLaravel\Set\LaravelSetProvider;
@@ -37,6 +38,12 @@ return RectorConfig::configure()
   ])
   ->withSkip([
     AddOverrideAttributeToOverriddenMethodsRector::class,
+    // PHPDoc `@return` tags re-narrow Laravel parent contracts (e.g. class-string → string)
+    // so phpstan stops flagging widened returns. The native return type alone is not enough.
+    RemoveUselessReturnTagRector::class => [
+      __DIR__.'/src/Console/Commands',
+      __DIR__.'/src/Concerns',
+    ],
   ])
   ->withPreparedSets(
     deadCode: true,

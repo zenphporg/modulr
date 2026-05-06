@@ -23,19 +23,19 @@
     "ext-dom": "*",
     "ext-json": "*",
     "ext-simplexml": "*",
-    "composer/composer": "^2.9.2",
-    "illuminate/support": "^11.0|^12.0"
+    "composer/composer": "^2.9.7",
+    "illuminate/support": "^11.0|^12.0|^13.0"
   },
   "require-dev": {
     "mockery/mockery": "^1.6.12",
     "zenphp/fixr": "^1.0.4",
-    "rector/rector": "^2.2.14",
-    "pestphp/pest": "^4.2.0",
-    "orchestra/testbench": "^10.8.0",
-    "larastan/larastan": "^3.8.1",
-    "pestphp/pest-plugin-type-coverage": "^4.0.3",
-    "pestphp/pest-plugin-laravel": "^4.0.0",
-    "driftingly/rector-laravel": "^2.1"
+    "rector/rector": "^2.4.2",
+    "pestphp/pest": "^4.7.0",
+    "orchestra/testbench": "^10.11.0",
+    "larastan/larastan": "^3.9.6",
+    "pestphp/pest-plugin-type-coverage": "^4.0.4",
+    "pestphp/pest-plugin-laravel": "^4.1.0",
+    "driftingly/rector-laravel": "^2.3.0"
   },
   "autoload": {
     "psr-4": {
